@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: edge-x
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npx http-server dist -p $PORT -a 0.0.0.0
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VITE_SUPABASE_FUNCTIONS_URL
+        sync: false
+      - key: VITE_APP_URL
+        sync: false
+
+  - type: cron
+    name: supabase-functions
+    env: node
+    schedule: "*/5 * * * *"
+    buildCommand: npm install
+    startCommand: echo "Supabase functions are deployed separately via Supabase CLI"
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

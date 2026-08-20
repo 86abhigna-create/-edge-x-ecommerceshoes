@@ -1,0 +1,1509 @@
+import React, { useState } from 'react';
+import { Order, WishlistItem, Review, NotificationItem, CartItem, Product, Address } from '../types';
+
+interface CustomerDashboardViewProps {
+  orders: Order[];
+  wishlist: WishlistItem[];
+  reviews: Review[];
+  notifications: NotificationItem[];
+  cartItems?: CartItem[];
+  products?: Product[];
+  onRemoveWishlist: (id: string) => void;
+  onAddReview: (review: Review) => void;
+  onRequestReturn: (orderId: string, reason: string) => void;
+  onShopClick: () => void;
+  onAddToCart?: (product: Product, size: string, quantity: number, color?: string) => void;
+  onUpdateQuantity?: (cartItemId: string, delta: number) => void;
+  onRemoveCartItem?: (cartItemId: string) => void;
+  onProceedToCheckout?: () => void;
+  onLogout: () => void;
+  savedAddresses: Address[];
+  setSavedAddresses: React.Dispatch<React.SetStateAction<Address[]>>;
+}
+
+export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
+  orders,
+  wishlist,
+  reviews,
+  notifications,
+  cartItems = [],
+  products = [],
+  onRemoveWishlist,
+  onAddReview,
+  onRequestReturn,
+  onShopClick,
+  onAddToCart,
+  onUpdateQuantity,
+  onRemoveCartItem,
+  onProceedToCheckout,
+  onLogout,
+  savedAddresses,
+  setSavedAddresses,
+}) => {
+  const [activeSubTab, setActiveSubTab] = useState<
+    | 'overview'
+    | 'profile'
+    | 'orders'
+    | 'order-details'
+    | 'cart'
+    | 'wishlist'
+    | 'payments'
+    | 'addresses'
+    | 'returns'
+    | 'refunds'
+    | 'reviews'
+    | 'recently-viewed'
+    | 'saved-products'
+    | 'notifications'
+    | 'coupons'
+    | 'support'
+    | 'settings'
+  >('overview');
+
+  // Coupon state for Cart tab
+  const [cartCoupon, setCartCoupon] = useState('');
+  const [cartActiveCoupon, setCartActiveCoupon] = useState<{ code: string; type: 'flat' | 'percent'; amount: number } | null>(null);
+  const [cartCouponError, setCartCouponError] = useState('');
+
+  const [trackingOrderId, setTrackingOrderId] = useState<string | null>(null);
+
+  const cartSubtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  let cartDiscount = 0;
+  if (cartActiveCoupon) {
+    if (cartActiveCoupon.type === 'flat') {
+      cartDiscount = Math.min(cartSubtotal, cartActiveCoupon.amount);
+    } else {
+      cartDiscount = Math.round((cartSubtotal * cartActiveCoupon.amount) / 100);
+    }
+  }
+  const cartShipping = cartSubtotal > 200 || cartSubtotal === 0 ? 0 : 15;
+  const cartGrandTotal = Math.max(0, cartSubtotal - cartDiscount + cartShipping);
+
+  const handleApplyCartCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCartCouponError('');
+    const code = cartCoupon.trim().toUpperCase();
+    if (code === 'EDGEX10') {
+      setCartActiveCoupon({ code: 'EDGEX10', type: 'flat', amount: 25 });
+      setCartCoupon('');
+    } else if (code === 'STEEP10' || code === 'SAVE10') {
+      setCartActiveCoupon({ code: code, type: 'percent', amount: 10 });
+      setCartCoupon('');
+    } else if (code === 'EDGE20' || code === 'SALE20') {
+      setCartActiveCoupon({ code: code, type: 'percent', amount: 20 });
+      setCartCoupon('');
+    } else {
+      setCartCouponError('Invalid coupon. Try "EDGEX10", "STEEP10", or "EDGE20"');
+    }
+  };
+
+  // Review form state
+  const [reviewProductName, setReviewProductName] = useState('');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isWritingReview, setIsWritingReview] = useState(false);
+
+  // Address modal state
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [addressForm, setAddressForm] = useState({
+    full_name: '',
+    phone: '',
+    street: '',
+    apartment: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: 'USA',
+    type: 'shipping' as 'shipping' | 'billing',
+    is_default: false,
+  });
+
+  const handleAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newAddress: Address = {
+      id: editingAddress?.id || `addr-${Date.now()}`,
+      user_id: 'user-1',
+      type: addressForm.type,
+      fullName: addressForm.full_name,
+      phone: addressForm.phone,
+      street: addressForm.street,
+      apartment: addressForm.apartment,
+      city: addressForm.city,
+      state: addressForm.state,
+      zip: addressForm.zip,
+      country: addressForm.country,
+      isDefault: addressForm.is_default,
+      createdAt: editingAddress?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (editingAddress) {
+      setSavedAddresses(prev => prev.map(a => a.id === editingAddress.id ? newAddress : a));
+    } else {
+      // If this is default, unset other defaults of same type
+      if (addressForm.is_default) {
+        setSavedAddresses(prev => prev.map(a => 
+          a.type === addressForm.type ? { ...a, isDefault: false } : a
+        ));
+      }
+      setSavedAddresses(prev => [...prev, newAddress]);
+    }
+    alert(`Address ${editingAddress ? 'updated' : 'added'} successfully!`);
+    setShowAddressModal(false);
+    setEditingAddress(null);
+    setAddressForm({
+      full_name: '',
+      phone: '',
+      street: '',
+      apartment: '',
+      city: '',
+      state: '',
+      zip: '',
+      country: 'USA',
+      type: 'shipping',
+      is_default: false,
+    });
+  };
+
+  const openAddAddressModal = () => {
+    setEditingAddress(null);
+    setAddressForm({
+      full_name: '',
+      phone: '',
+      street: '',
+      apartment: '',
+      city: '',
+      state: '',
+      zip: '',
+      country: 'USA',
+      type: 'shipping',
+      is_default: false,
+    });
+    setShowAddressModal(true);
+  };
+
+  const openEditAddressModal = (address: Address) => {
+    setEditingAddress(address);
+    setAddressForm({
+      full_name: address.fullName,
+      phone: address.phone || '',
+      street: address.street,
+      apartment: address.apartment || '',
+      city: address.city,
+      state: address.state,
+      zip: address.zip,
+      country: address.country,
+      type: address.type,
+      is_default: address.isDefault,
+    });
+    setShowAddressModal(true);
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewProductName) return;
+    onAddReview({
+      id: 'rev-' + Date.now(),
+      productId: 'p-1',
+      productName: reviewProductName,
+      userName: 'Alex Vance',
+      rating,
+      comment,
+      date: new Date().toLocaleDateString(),
+    });
+    setComment('');
+    setIsWritingReview(false);
+    alert('Review submitted successfully.');
+  };
+
+  const subCategories = [
+    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+    { id: 'profile', label: 'My Profile', icon: 'person' },
+    { id: 'orders', label: `My Orders (${orders.length})`, icon: 'package_2' },
+    { id: 'order-details', label: 'Order Details', icon: 'receipt_long' },
+    { id: 'cart', label: `My Cart (${cartItems.length})`, icon: 'shopping_bag' },
+    { id: 'wishlist', label: `Wishlist (${wishlist.length})`, icon: 'favorite' },
+    { id: 'payments', label: 'Payments', icon: 'credit_card' },
+    { id: 'addresses', label: 'Addresses', icon: 'location_on' },
+    { id: 'returns', label: 'Returns', icon: 'assignment_return' },
+    { id: 'refunds', label: 'Refunds', icon: 'payments' },
+    { id: 'reviews', label: `Reviews & Ratings (${reviews.length})`, icon: 'star' },
+    { id: 'recently-viewed', label: 'Recently Viewed', icon: 'history' },
+    { id: 'saved-products', label: 'Saved Products', icon: 'bookmark' },
+    { id: 'notifications', label: `Notifications (${notifications.filter(n => !n.read).length})`, icon: 'notifications' },
+    { id: 'coupons', label: 'Offers & Coupons', icon: 'local_offer' },
+    { id: 'support', label: 'Support', icon: 'support_agent' },
+    { id: 'settings', label: 'Account Settings', icon: 'settings' },
+  ];
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-5 md:px-16 py-8 pb-24">
+      {/* Header Banner */}
+      <div className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#b7c4fd]">Your Space & Portal</span>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">Alex Vance</h1>
+          <p className="text-xs text-[#b7c4fd] mt-1">Black Circle Tier • Member ID: EX-99421 • Early Access Active</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onShopClick}
+            className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] transition-colors"
+          >
+            Explore Drop Catalog →
+          </button>
+          <button
+            onClick={onLogout}
+            className="bg-transparent border dark:border-[#F2F2F2] border-black dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] hover:dark:text-[#0D0D0D] text-white transition-colors"
+          >
+            Log Out
+          </button>
+        </div>
+      </div>
+
+      {/* Sub Tabs Navigation grid / scrollable */}
+      <div className="flex gap-2 overflow-x-auto border-b dark:border-[#262626] border-gray-200 mb-8 pb-3 no-scrollbar">
+        {subCategories.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveSubTab(tab.id as any)}
+            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider shrink-0 transition-all flex items-center gap-2 ${
+              activeSubTab === tab.id
+                ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900'
+                : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 1. OVERVIEW */}
+      {activeSubTab === 'overview' && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 shadow-xs">
+              <p className="text-xs font-bold dark:text-[#868686] text-gray-500 uppercase tracking-wider">Total Orders</p>
+              <p className="text-3xl font-black dark:text-[#F2F2F2] text-gray-900 mt-2">{orders.length}</p>
+              <button onClick={() => setActiveSubTab('orders')} className="text-xs text-[#D10000] font-bold mt-2 hover:underline block">
+                View orders →
+              </button>
+            </div>
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 shadow-xs">
+              <p className="text-xs font-bold dark:text-[#868686] text-gray-500 uppercase tracking-wider">Wishlist Items</p>
+              <p className="text-3xl font-black dark:text-[#F2F2F2] text-gray-900 mt-2">{wishlist.length}</p>
+              <button onClick={() => setActiveSubTab('wishlist')} className="text-xs text-[#D10000] font-bold mt-2 hover:underline block">
+                View wishlist →
+              </button>
+            </div>
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 shadow-xs">
+              <p className="text-xs font-bold dark:text-[#868686] text-gray-500 uppercase tracking-wider">Active Coupons</p>
+              <p className="text-3xl font-black text-emerald-700 mt-2">2 Available</p>
+              <button onClick={() => setActiveSubTab('coupons')} className="text-xs text-[#D10000] font-bold mt-2 hover:underline block">
+                View offers →
+              </button>
+            </div>
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 shadow-xs">
+              <p className="text-xs font-bold dark:text-[#868686] text-gray-500 uppercase tracking-wider">Reviews Posted</p>
+              <p className="text-3xl font-black dark:text-[#F2F2F2] text-gray-900 mt-2">{reviews.length}</p>
+              <button onClick={() => setActiveSubTab('reviews')} className="text-xs text-[#D10000] font-bold mt-2 hover:underline block">
+                View ratings →
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6">
+              <h3 className="text-base font-black dark:text-[#F2F2F2] text-gray-900 mb-4">Default Shipping Address</h3>
+              <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 text-xs space-y-1 border dark:border-[#262626] border-gray-200">
+                <p className="font-bold dark:text-[#F2F2F2] text-gray-900">Alex Vance</p>
+                <p>742 Evergreen Terrace</p>
+                <p>New York, NY 10001</p>
+                <p>United States</p>
+              </div>
+              <button onClick={() => setActiveSubTab('addresses')} className="text-xs font-bold text-[#D10000] mt-3 hover:underline block">
+                Manage all addresses →
+              </button>
+            </div>
+
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6">
+              <h3 className="text-base font-black dark:text-[#F2F2F2] text-gray-900 mb-4">Saved Payment Card</h3>
+              <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 text-xs flex justify-between items-center border dark:border-[#262626] border-gray-200">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-xl dark:text-[#F2F2F2] text-gray-900">credit_card</span>
+                  <div>
+                    <p className="font-bold dark:text-[#F2F2F2] text-gray-900">Mastercard ending in 4242</p>
+                    <p className="dark:text-[#868686] text-gray-500">Express Checkout Enabled</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 border border-emerald-200">Active</span>
+              </div>
+              <button onClick={() => setActiveSubTab('payments')} className="text-xs font-bold text-[#D10000] mt-3 hover:underline block">
+                Manage payment methods →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MY PROFILE */}
+      {activeSubTab === 'profile' && (
+        <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 space-y-8">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">My Profile & Personal Information</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Manage your identity, contact details, profile picture, and credentials.</p>
+            </div>
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 border border-emerald-200">
+              Black Circle VIP Member
+            </span>
+          </div>
+
+          {/* Profile Image & Basic Info */}
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200">
+            <div className="w-24 h-24 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 flex items-center justify-center font-black text-3xl shrink-0 rounded-full overflow-hidden shadow-sm relative group">
+              <span className="material-symbols-outlined text-4xl">person</span>
+            </div>
+            <div className="space-y-2 flex-grow">
+              <label className="block text-xs font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Profile Image / Avatar</label>
+              <div className="flex items-center gap-3">
+                <button onClick={() => alert('Avatar updated successfully.')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000]">
+                  Upload New Photo
+                </button>
+                <button onClick={() => alert('Default avatar restored.')} className="dark:bg-[#0D0D0D] bg-white text-[#45464f] border dark:border-[#262626] border-gray-200 px-4 py-2 text-xs font-bold uppercase tracking-wider dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black">
+                  Remove
+                </button>
+              </div>
+              <p className="text-[11px] dark:text-[#868686] text-gray-500">JPG, GIF or PNG. Max size of 800K.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Full Name</label>
+              <input type="text" defaultValue="Alex Vance" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Email Address</label>
+              <input type="email" defaultValue="alex.vance@edgex.studio" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Mobile Number</label>
+              <input type="text" defaultValue="+1 (555) 382-9912" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Membership Tier</label>
+              <input type="text" defaultValue="Black Circle Tier (VIP)" disabled className="w-full p-3 border dark:border-[#262626] border-gray-200 bg-emerald-50 font-bold text-emerald-800" />
+            </div>
+          </div>
+
+          {/* Password & Security Settings */}
+          <div className="pt-6 border-t dark:border-[#262626] border-gray-200 space-y-4">
+            <h4 className="font-black text-base dark:text-[#F2F2F2] text-gray-900">Password & Account Settings</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Current Password</label>
+                <input type="password" placeholder="••••••••" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white" />
+              </div>
+              <div className="space-y-1">
+                <label className="font-bold uppercase dark:text-[#868686] text-gray-500">New Password</label>
+                <input type="password" placeholder="New password" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white" />
+              </div>
+              <div className="space-y-1">
+                <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Confirm Password</label>
+                <input type="password" placeholder="Confirm password" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white" />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 flex gap-3">
+            <button onClick={() => alert('Profile and security credentials updated successfully.')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#8a0000]">
+              Save Profile Changes
+            </button>
+            <button onClick={() => alert('Changes discarded.')} className="dark:bg-[#1a1a1a] bg-gray-50 text-[#45464f] px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#c6c5d0]">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MY ORDERS */}
+      {activeSubTab === 'orders' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">My Orders & Purchase Records</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Complete itemized ledger of all sneaker drop purchases and fulfillment status.</p>
+            </div>
+            <span className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 bg-blue-50 px-3 py-1 border border-blue-200">
+              {orders.length} Total Orders
+            </span>
+          </div>
+
+          {orders.length === 0 ? (
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-12 text-center">
+              <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">No orders placed yet.</p>
+              <button onClick={onShopClick} className="mt-4 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase tracking-widest px-6 py-3">Shop Now</button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {orders.map((o) => (
+                <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 md:p-8 shadow-xs space-y-6">
+                  {/* Order Top Meta */}
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b dark:border-[#262626] border-gray-200 gap-3">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-black text-base text-[#D10000]">Order ID: {o.orderId}</span>
+                        <span className="text-xs dark:text-[#868686] text-gray-500">• Order Date: {o.date}</span>
+                      </div>
+                      <p className="text-xs dark:text-[#868686] text-gray-500 mt-0.5">Delivery Info: {o.shippingAddress.fullName}, {o.shippingAddress.street}, {o.shippingAddress.city}, {o.shippingAddress.state} {o.shippingAddress.zip}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {o.paymentMethod}
+                      </span>
+                      <span className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider border ${
+                        o.status === 'Delivered' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                      }`}>
+                        Status: {o.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Items List */}
+                  <div className="space-y-4">
+                    {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
+                      o.itemSnapshots.map((snap, idx) => (
+                        <div key={idx} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 dark:bg-white bg-gray-50 flex items-center justify-center p-1 shrink-0 border dark:border-gray-200 border-gray-200 rounded">
+                              <img src={snap.image} alt={snap.productName} className="w-full h-full object-contain mix-blend-multiply" />
+                            </div>
+                            <div>
+                              <p className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">{snap.productName}</p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs dark:text-[#868686] text-gray-500 mt-1 font-semibold">
+                                <span>Size: <strong className="dark:text-[#F2F2F2] text-gray-900">{snap.selectedSize}</strong></span>
+                                <span>Color: <strong className="dark:text-[#F2F2F2] text-gray-900">{snap.selectedColor}</strong></span>
+                                <span>Qty: <strong className="dark:text-[#F2F2F2] text-gray-900">{snap.quantity}</strong></span>
+                                <span>Unit Price: <strong className="dark:text-[#F2F2F2] text-gray-900">${snap.price}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 text-xs text-right w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 dark:border-[#262626] border-gray-200">
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Discount</p>
+                              <p className="font-bold text-emerald-700">-$0.00</p>
+                            </div>
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Delivery Charge</p>
+                              <p className="font-bold dark:text-[#F2F2F2] text-gray-900">FREE</p>
+                            </div>
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Item Total</p>
+                              <p className="font-black text-base dark:text-[#F2F2F2] text-gray-900">${snap.price * snap.quantity}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      o.items.map((item, idx) => (
+                        <div key={idx} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 dark:bg-white bg-gray-50 flex items-center justify-center p-1 shrink-0 border dark:border-gray-200 border-gray-200 rounded">
+                              <img src={item.product?.image || ''} alt={item.product?.name || 'Shoe'} className="w-full h-full object-contain mix-blend-multiply" />
+                            </div>
+                            <div>
+                              <p className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">{item.product?.name || 'Deactivated Shoe'}</p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs dark:text-[#868686] text-gray-500 mt-1 font-semibold">
+                                <span>Size: <strong className="dark:text-[#F2F2F2] text-gray-900">{item.selectedSize}</strong></span>
+                                <span>Color: <strong className="dark:text-[#F2F2F2] text-gray-900">{item.selectedColor || item.product?.colorway || 'Standard'}</strong></span>
+                                <span>Qty: <strong className="dark:text-[#F2F2F2] text-gray-900">{item.quantity}</strong></span>
+                                <span>Unit Price: <strong className="dark:text-[#F2F2F2] text-gray-900">${item.product?.price || 0}</strong></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 text-xs text-right w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 dark:border-[#262626] border-gray-200">
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Discount</p>
+                              <p className="font-bold text-emerald-700">-$0.00</p>
+                            </div>
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Delivery Charge</p>
+                              <p className="font-bold dark:text-[#F2F2F2] text-gray-900">FREE</p>
+                            </div>
+                            <div>
+                              <p className="dark:text-[#868686] text-gray-500 uppercase">Item Total</p>
+                              <p className="font-black text-base dark:text-[#F2F2F2] text-gray-900">${(item.product?.price || 0) * item.quantity}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Order Footer Totals & Action */}
+                  <div className="pt-4 border-t dark:border-[#262626] border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+                    <div className="space-y-1">
+                      <p className="dark:text-[#868686] text-gray-500">Courier: <strong className="dark:text-[#F2F2F2] text-gray-900">EDGEX Air Express (Tracking # EX-TRK-9821)</strong></p>
+                      <p className="dark:text-[#868686] text-gray-500">Estimated Delivery: <strong className="text-emerald-700">Delivered within 3 business days</strong></p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <span className="dark:text-[#868686] text-gray-500 uppercase text-[10px] block">Grand Total Paid</span>
+                        <span className="font-black text-xl dark:text-[#F2F2F2] text-gray-900">${o.total}</span>
+                      </div>
+                      <button 
+                        onClick={() => setTrackingOrderId(trackingOrderId === o.orderId ? null : o.orderId)} 
+                        className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-5 py-2.5 font-bold uppercase tracking-wider hover:bg-[#8a0000]"
+                      >
+                        {trackingOrderId === o.orderId ? 'Hide Tracking' : 'Track Order'}
+                      </button>
+                      <button onClick={() => setActiveSubTab('order-details')} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 dark:text-[#F2F2F2] text-gray-900 px-5 py-2.5 font-bold uppercase tracking-wider dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black">
+                        View Full Details
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Tracking Timeline */}
+                  {trackingOrderId === o.orderId && (
+                    <div className="pt-8 pb-4 border-t dark:border-[#262626] border-gray-200 mt-4">
+                      <div className="flex flex-col md:flex-row justify-between relative max-w-4xl mx-auto">
+                        <div className="absolute top-4 left-4 right-4 h-1 dark:bg-[#262626] bg-gray-200 hidden md:block -z-10"></div>
+                        <div className="absolute top-4 left-4 h-1 bg-[#D10000] hidden md:block -z-10" style={{
+                          width: o.status === 'Processing' || o.status === 'Order Confirmed' || o.status === 'Payment Confirmed' ? '0%' :
+                                 o.status === 'Shipped' ? '33%' :
+                                 o.status === 'Out for Delivery' ? '66%' :
+                                 o.status === 'Delivered' ? '100%' : '0%'
+                        }}></div>
+                        
+                        {[
+                          { label: 'Confirmed', icon: 'receipt_long' },
+                          { label: 'Shipped', icon: 'local_shipping' },
+                          { label: 'Out for Delivery', icon: 'directions_car' },
+                          { label: 'Delivered', icon: 'done_all' }
+                        ].map((step, stepIdx) => {
+                          const currentStepIdx = 
+                            o.status === 'Shipped' ? 1 : 
+                            o.status === 'Out for Delivery' ? 2 : 
+                            o.status === 'Delivered' ? 3 : 0;
+                            
+                          const isCompleted = stepIdx <= currentStepIdx;
+                          const isCurrent = stepIdx === currentStepIdx;
+                          
+                          return (
+                            <div key={step.label} className="flex flex-row md:flex-col items-center gap-4 md:gap-2 mb-6 md:mb-0 relative dark:bg-[#0D0D0D] bg-white md:bg-transparent">
+                              {/* Mobile timeline line */}
+                              {stepIdx !== 3 && <div className="absolute left-[15px] top-8 bottom-[-24px] w-[2px] dark:bg-[#262626] bg-gray-200 md:hidden -z-10"></div>}
+                              {stepIdx !== 3 && isCompleted && !isCurrent && <div className="absolute left-[15px] top-8 bottom-[-24px] w-[2px] bg-[#D10000] md:hidden -z-10"></div>}
+                              
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors ${
+                                isCompleted ? 'bg-[#D10000] border-[#D10000] dark:text-[#F2F2F2] text-gray-900' : 'dark:bg-[#0D0D0D] bg-white dark:border-[#262626] border-gray-200 text-[#c6c5d0]'
+                              }`}>
+                                <span className="material-symbols-outlined text-[16px]">{step.icon}</span>
+                              </div>
+                              <div className="md:text-center">
+                                <p className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? 'dark:text-[#F2F2F2] text-gray-900' : 'dark:text-[#868686] text-gray-500'}`}>
+                                  {step.label}
+                                </p>
+                                {isCurrent && o.status !== 'Delivered' && (
+                                  <p className="text-[10px] text-[#D10000] font-bold mt-0.5">In Progress</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. ORDER DETAILS */}
+      {activeSubTab === 'order-details' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Comprehensive Order & Shipment Details</h3>
+          {orders.map((o) => (
+            <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 space-y-6">
+              <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+                <div>
+                  <h4 className="font-black text-base dark:text-[#F2F2F2] text-gray-900">Order {o.orderId}</h4>
+                  <p className="text-xs dark:text-[#868686] text-gray-500">Placed on {o.date}</p>
+                </div>
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase border border-emerald-200">
+                  {o.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 space-y-1">
+                  <p className="font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Shipping Address</p>
+                  <p>{o.shippingAddress.fullName}</p>
+                  <p>{o.shippingAddress.street}</p>
+                  <p>{o.shippingAddress.city}, {o.shippingAddress.state} {o.shippingAddress.zip}</p>
+                </div>
+                <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 space-y-1">
+                  <p className="font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Payment Method</p>
+                  <p>{o.paymentMethod || 'Mastercard ending in 4242'}</p>
+                  <p className="text-emerald-700 font-bold">Paid in Full</p>
+                </div>
+                <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 space-y-1">
+                  <p className="font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Delivery & Courier</p>
+                  <p>EDGEX Express Air</p>
+                  <p className="text-[#D10000] font-bold">Tracking # EX-TRK-98214</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="font-bold uppercase text-xs mb-3 dark:text-[#F2F2F2] text-gray-900">Purchased Silhouettes</p>
+                <div className="space-y-3">
+                  {o.items.map((item, i) => (
+                    <div key={i} className="flex justify-between items-center border dark:border-[#262626] border-gray-200 p-4">
+                      <div className="flex items-center gap-4">
+                        <img src={item.product.image} alt={item.product.name} className="w-12 h-12 object-contain mix-blend-multiply dark:bg-white bg-gray-50 p-1 rounded" />
+                        <div>
+                          <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">{item.product.name}</p>
+                          <p className="text-xs dark:text-[#868686] text-gray-500">Size: {item.selectedSize} | Qty: {item.quantity}</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-sm">${item.product.price * item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 5. MY CART */}
+      {activeSubTab === 'cart' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">My Active Shopping Bag & Cart</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Review selected silhouettes, sizing, colorways, quantities, unit prices, discounts, and coupon breakdown.</p>
+            </div>
+            <span className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 bg-blue-50 px-3 py-1 border border-blue-200 rounded-full">
+              {cartItems.length} Items in Bag
+            </span>
+          </div>
+
+          {cartItems.length === 0 ? (
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-12 text-center space-y-3 shadow-xs">
+              <div className="w-16 h-16 rounded-full dark:bg-[#1a1a1a] bg-gray-50 flex items-center justify-center mx-auto border dark:border-[#262626] border-gray-200">
+                <span className="material-symbols-outlined text-3xl dark:text-[#868686] text-gray-500">shopping_bag</span>
+              </div>
+              <p className="font-bold text-base dark:text-[#F2F2F2] text-gray-900">Your shopping bag is currently empty.</p>
+              <p className="text-xs dark:text-[#868686] text-gray-500">Browse the drop catalog to reserve your desired size and colorway.</p>
+              <button onClick={onShopClick} className="mt-2 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl hover:bg-[#8a0000] transition-colors">Return to Catalog</button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                {cartItems.map((item) => {
+                  const selectedColor = item.selectedColor || item.product.colorway;
+                  const listPrice = Math.round(item.product.price * 1.18);
+                  const discountPct = item.product.discountPercent || 15;
+
+                  return (
+                    <div key={item.cartItemId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xs">
+                      {/* Product Thumbnail & Details */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 dark:bg-white bg-gray-50 border dark:border-gray-200 border-gray-200 rounded-lg flex items-center justify-center p-2 shrink-0">
+                          <img src={item.product.image} alt={item.product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-widest dark:text-[#868686] text-gray-500">{item.product.category} • SKU: EX-{item.product.id.toUpperCase()}</p>
+                          <h4 className="font-black text-base dark:text-[#F2F2F2] text-gray-900">{item.product.name}</h4>
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-[#45464f] mt-1.5 font-semibold">
+                            <span className="dark:bg-[#1a1a1a] bg-gray-50 px-2 py-0.5 rounded border dark:border-[#262626] border-gray-200 text-[11px] font-extrabold dark:text-[#F2F2F2] text-gray-900">
+                              Size: {item.selectedSize}
+                            </span>
+                            <span className="dark:bg-[#1a1a1a] bg-gray-50 px-2 py-0.5 rounded border dark:border-[#262626] border-gray-200 text-[11px] font-extrabold dark:text-[#F2F2F2] text-gray-900 flex items-center gap-1">
+                              Color: {selectedColor}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quantity & Pricing Breakdowns */}
+                      <div className="flex items-center gap-6 text-xs text-right w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 dark:border-[#262626] border-gray-200">
+                        {/* Quantity controls */}
+                        <div className="text-left">
+                          <p className="dark:text-[#868686] text-gray-500 uppercase text-[10px] font-bold mb-1">Quantity</p>
+                          <div className="flex items-center border dark:border-[#262626] border-gray-200 rounded dark:bg-[#0D0D0D] bg-white overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() => onUpdateQuantity && onUpdateQuantity(item.cartItemId, -1)}
+                              className="px-2.5 py-1 text-xs font-black dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:dark:bg-[#1a1a1a] bg-gray-50"
+                            >
+                              -
+                            </button>
+                            <span className="px-3 text-xs font-black dark:text-[#F2F2F2] text-gray-900">{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => onUpdateQuantity && onUpdateQuantity(item.cartItemId, 1)}
+                              className="px-2.5 py-1 text-xs font-black dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:dark:bg-[#1a1a1a] bg-gray-50"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="dark:text-[#868686] text-gray-500 uppercase text-[10px] font-bold">Unit Price</p>
+                          <p className="font-bold dark:text-[#F2F2F2] text-gray-900">₹{item.product.price.toLocaleString('en-IN')}</p>
+                          <p className="text-[10px] dark:text-[#868686] text-gray-500 line-through">₹{listPrice.toLocaleString('en-IN')}</p>
+                        </div>
+
+                        <div>
+                          <p className="dark:text-[#868686] text-gray-500 uppercase text-[10px] font-bold">Discount</p>
+                          <p className="font-bold text-emerald-700">-₹{((listPrice - item.product.price) * item.quantity).toLocaleString('en-IN')}</p>
+                          <span className="text-[9px] font-black text-red-600 bg-red-50 px-1 py-0.5 rounded">-{discountPct}% OFF</span>
+                        </div>
+
+                        <div>
+                          <p className="dark:text-[#868686] text-gray-500 uppercase text-[10px] font-bold">Item Total</p>
+                          <p className="font-black text-lg dark:text-[#F2F2F2] text-gray-900">₹{(item.product.price * item.quantity).toLocaleString('en-IN')}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onRemoveCartItem && onRemoveCartItem(item.cartItemId)}
+                          className="dark:text-[#868686] text-gray-500 hover:text-red-600 p-1.5 transition-colors"
+                          title="Remove item"
+                        >
+                          <span className="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coupon Form & Totals Box */}
+              <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-6 space-y-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b dark:border-[#262626] border-gray-200">
+                  <div className="w-full sm:w-auto">
+                    <p className="font-bold text-xs uppercase dark:text-[#F2F2F2] text-gray-900 mb-1">Apply Promotional Coupon</p>
+                    {cartActiveCoupon ? (
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800 font-bold flex items-center gap-2">
+                        <span>✓ Coupon "{cartActiveCoupon.code}" Active ({cartActiveCoupon.type === 'flat' ? `₹${cartActiveCoupon.amount} OFF` : `${cartActiveCoupon.amount}% OFF`})</span>
+                        <button onClick={() => setCartActiveCoupon(null)} className="text-red-600 text-[10px] uppercase font-black underline">Remove</button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleApplyCartCoupon} className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Coupon code (e.g. EDGEX10)"
+                          value={cartCoupon}
+                          onChange={(e) => setCartCoupon(e.target.value)}
+                          className="px-3 py-1.5 text-xs border dark:border-[#262626] border-gray-200 rounded outline-none font-bold uppercase tracking-wider"
+                        />
+                        <button type="submit" className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-4 py-1.5 text-xs font-bold uppercase rounded">Apply</button>
+                      </form>
+                    )}
+                    {cartCouponError && <p className="text-[11px] text-red-600 font-semibold mt-1">{cartCouponError}</p>}
+                  </div>
+
+                  <div className="space-y-1 text-right w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 dark:border-[#262626] border-gray-200">
+                    <p className="text-xs dark:text-[#868686] text-gray-500">Subtotal: <strong className="dark:text-[#F2F2F2] text-gray-900">₹{cartSubtotal.toLocaleString('en-IN')}</strong></p>
+                    {cartDiscount > 0 && <p className="text-xs text-emerald-700 font-bold">Coupon Discount: -₹{cartDiscount.toLocaleString('en-IN')}</p>}
+                    <p className="text-xs dark:text-[#868686] text-gray-500">Express Shipping: <strong className="text-emerald-700">{cartShipping === 0 ? 'FREE' : `₹${cartShipping.toLocaleString('en-IN')}`}</strong></p>
+                    <p className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Grand Total: <span className="text-[#D10000]">₹{cartGrandTotal.toLocaleString('en-IN')}</span></p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button onClick={onShopClick} className="dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase rounded dark:hover:bg-[#262626] hover:dark:bg-[#262626] bg-gray-200">
+                    Continue Shopping
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onProceedToCheckout) onProceedToCheckout();
+                      else alert('Proceeding to Checkout...');
+                    }}
+                    className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-8 py-3 text-xs font-bold uppercase tracking-widest rounded hover:bg-[#8a0000] shadow-sm flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-base">lock</span>
+                    <span>Proceed to Secure Checkout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 6. WISHLIST */}
+      {activeSubTab === 'wishlist' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Saved Wishlist Silhouettes</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Saved sneakers, real-time availability status, current prices, and instant transfer to cart.</p>
+            </div>
+            <span className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 bg-blue-50 px-3 py-1 border border-blue-200 rounded-full">
+              {wishlist.length} Saved Items
+            </span>
+          </div>
+
+          {wishlist.length === 0 ? (
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-12 text-center space-y-3 shadow-xs">
+              <div className="w-16 h-16 rounded-full dark:bg-[#1a1a1a] bg-gray-50 flex items-center justify-center mx-auto border dark:border-[#262626] border-gray-200">
+                <span className="material-symbols-outlined text-3xl dark:text-[#868686] text-gray-500">favorite</span>
+              </div>
+              <p className="font-bold text-base dark:text-[#F2F2F2] text-gray-900">Your wishlist is currently empty.</p>
+              <p className="text-xs dark:text-[#868686] text-gray-500">Save your favorite drops to monitor stock availability and price updates.</p>
+              <button onClick={onShopClick} className="mt-2 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl hover:bg-[#8a0000] transition-colors">Browse Drop Catalog</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {wishlist.map((item) => {
+                const p = item.product;
+                const stock = p.stockCount !== undefined ? p.stockCount : 10;
+                const isOutOfStock = !p.inStock || stock <= 0;
+                const isLowStock = stock > 0 && stock <= 3;
+                const listPrice = Math.round(p.price * 1.18);
+                const discountPct = p.discountPercent || 15;
+
+                return (
+                  <div key={item.id} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-5 flex flex-col justify-between space-y-4 shadow-xs relative group">
+                    <div>
+                      {/* Availability Badge */}
+                      <div className="w-full h-48 dark:bg-white bg-gray-50 border dark:border-gray-200 border-gray-200 rounded-lg flex items-center justify-center p-4 mb-3 relative overflow-hidden">
+                        <span className={`absolute top-2 right-2 px-2.5 py-0.5 text-[9px] font-black uppercase rounded border ${
+                          isOutOfStock
+                            ? 'bg-red-100 text-red-800 border-red-300'
+                            : isLowStock
+                            ? 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+                            : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        }`}>
+                          {isOutOfStock ? 'OUT OF STOCK' : isLowStock ? `LOW STOCK (${stock} LEFT)` : `IN STOCK (${stock} READY)`}
+                        </span>
+
+                        <img src={p.image} alt={p.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+
+                      <span className="text-[10px] font-bold dark:text-[#868686] text-gray-500 uppercase tracking-wider">{p.category} • SKU: EX-{p.id.toUpperCase()}</span>
+                      <h4 className="font-black text-base dark:text-[#F2F2F2] text-gray-900 mt-0.5 leading-tight">{p.name}</h4>
+
+                      {/* Current Price vs Original Price */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-base font-black text-[#D10000]">₹{p.price.toLocaleString('en-IN')}</span>
+                        <span className="text-xs dark:text-[#868686] text-gray-500 line-through font-semibold">₹{listPrice.toLocaleString('en-IN')}</span>
+                        <span className="text-[10px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">-{discountPct}% OFF</span>
+                      </div>
+
+                      {/* Real-time availability indicator text */}
+                      <div className="mt-2 text-xs font-semibold">
+                        {isOutOfStock ? (
+                          <span className="text-red-600 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-red-600 inline-block"></span>
+                            <span>Currently Sold Out</span>
+                          </span>
+                        ) : isLowStock ? (
+                          <span className="text-amber-700 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-amber-600 inline-block animate-ping"></span>
+                            <span>Hurry, only {stock} units remaining in warehouse</span>
+                          </span>
+                        ) : (
+                          <span className="text-emerald-700 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                            <span>In Stock — Express Shipment Available</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions: Remove & Move to Cart */}
+                    <div className="flex gap-2 pt-3 border-t dark:border-[#262626] border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => onRemoveWishlist(item.id)}
+                        className="w-1/3 dark:bg-[#1a1a1a] bg-gray-50 text-[#ba1a1a] hover:bg-red-50 border dark:border-[#262626] border-gray-200 py-2.5 text-xs font-bold uppercase rounded tracking-wider transition-colors"
+                      >
+                        Remove
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isOutOfStock}
+                        onClick={() => {
+                          if (onAddToCart) {
+                            onAddToCart(p, p.sizes?.[0] || 'US 9', 1, p.colorway);
+                          }
+                          onRemoveWishlist(item.id);
+                          alert(`Moved "${p.name}" to your shopping bag!`);
+                        }}
+                        className={`w-2/3 dark:text-[#F2F2F2] text-gray-900 py-2.5 text-xs font-bold uppercase rounded tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-xs ${
+                          isOutOfStock
+                            ? 'dark:bg-[#1a1a1a] bg-gray-50 cursor-not-allowed dark:text-[#868686] text-gray-500'
+                            : 'bg-[#D10000] hover:bg-[#8a0000]'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-base">shopping_bag</span>
+                        <span>Move to Cart</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 7. PAYMENTS */}
+      {activeSubTab === 'payments' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Payment Methods</h3>
+            <button onClick={() => alert('Add card modal.')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase px-4 py-2.5">+ Add Card</button>
+          </div>
+          <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-4">
+            <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+              <div className="flex items-center gap-4">
+                <span className="material-symbols-outlined text-3xl dark:text-[#F2F2F2] text-gray-900">credit_card</span>
+                <div>
+                  <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">Mastercard ending in 4242</p>
+                  <p className="text-xs dark:text-[#868686] text-gray-500">Expires 08/28 • Default Express Checkout</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 border border-emerald-200 uppercase">Default</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. ADDRESSES */}
+      {activeSubTab === 'addresses' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Shipping Addresses</h3>
+            <button onClick={openAddAddressModal} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase px-4 py-2.5">+ Add Address</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {savedAddresses.map((address) => (
+              <div key={address.id} className={`dark:bg-[#0D0D0D] bg-white p-6 space-y-3 ${address.isDefault ? 'border-2 border-[#D10000]' : 'border dark:border-[#262626] border-gray-200'}`}>
+                <div className="flex justify-between items-start">
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${address.isDefault ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900' : 'dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900'}`}>
+                    {address.type === 'shipping' ? 'Shipping' : 'Billing'}{address.isDefault ? ' (Default)' : ''}
+                  </span>
+                  <button onClick={() => openEditAddressModal(address)} className="text-xs font-bold text-[#D10000] hover:underline">
+                    Edit
+                  </button>
+                </div>
+                <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">{address.fullName}</p>
+                <p className="text-xs dark:text-[#868686] text-gray-500">{address.street}{address.apartment ? `<br />${address.apartment}` : ''}<br />{address.city}, {address.state} {address.zip}<br />{address.country}</p>
+                {address.isDefault && (
+                  <span className="text-[10px] font-bold uppercase bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-2 py-0.5 inline-block mt-2">
+                    Default {address.type === 'shipping' ? 'Shipping' : 'Billing'}
+                  </span>
+                )}
+                <div className="flex gap-2 pt-2 border-t dark:border-[#262626] border-gray-200">
+                  <button onClick={() => openEditAddressModal(address)} className="w-1/2 dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 py-2 text-xs font-bold uppercase rounded tracking-wider border dark:border-[#262626] border-gray-200">
+                    Edit
+                  </button>
+                  <button onClick={() => {
+                    if (address.isDefault) {
+                      alert('Cannot delete default address');
+                      return;
+                    }
+                    if (confirm('Delete this address?')) {
+                      setSavedAddresses(prev => prev.filter(a => a.id !== address.id));
+                    }
+                  }} className={`w-1/2 py-2 text-xs font-bold uppercase rounded tracking-wider transition-all ${address.isDefault ? 'dark:bg-[#1a1a1a] bg-gray-50 cursor-not-allowed dark:text-[#868686] text-gray-500' : 'bg-red-600 hover:bg-red-700 dark:text-[#F2F2F2] text-white'}`}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 9. RETURNS */}
+      {activeSubTab === 'returns' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Returns & Exchanges Workflow</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Request eligible order returns with reason & details, track pickup & return status.</p>
+            </div>
+            <span className="text-xs font-extrabold text-[#D10000] bg-blue-50 px-3 py-1 border border-blue-200 rounded">
+              30-Day Risk-Free Returns Active
+            </span>
+          </div>
+
+          <div className="space-y-6">
+            {/* Active Return Requests & History */}
+            <div className="space-y-4">
+              <h4 className="font-extrabold text-sm dark:text-[#F2F2F2] text-gray-900 uppercase tracking-wider">Your Return Requests & Status</h4>
+              {orders.filter((o) => o.returnRequested || o.status === 'Return Requested' || o.status === 'Returned' || o.status === 'Refund Initiated' || o.status === 'Refunded').length === 0 ? (
+                <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-6 text-xs dark:text-[#868686] text-gray-500">
+                  No active return requests. You can request a return on any delivered order below.
+                </div>
+              ) : (
+                orders
+                  .filter((o) => o.returnRequested || o.status === 'Return Requested' || o.status === 'Returned' || o.status === 'Refund Initiated' || o.status === 'Refunded')
+                  .map((o) => (
+                    <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-6 space-y-3 shadow-xs">
+                      <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200">
+                        <div>
+                          <span className="font-extrabold text-sm text-[#D10000]">Order ID: {o.orderId}</span>
+                          <p className="text-xs dark:text-[#868686] text-gray-500">Placed on {o.date} • Total: ₹{o.total.toLocaleString('en-IN')}</p>
+                        </div>
+                        <span className="px-3 py-1 text-xs font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 rounded">
+                          Return Status: {o.status}
+                        </span>
+                      </div>
+                      <div className="dark:bg-[#1a1a1a] bg-gray-50 p-3.5 rounded-lg border dark:border-[#262626] border-gray-200 text-xs space-y-1">
+                        <p className="dark:text-[#F2F2F2] text-gray-900"><strong>Reason / Details:</strong> {o.returnReason || 'Wrong Size / Fit Adjustment'}</p>
+                        <p className="dark:text-[#868686] text-gray-500"><strong>Refund Status:</strong> {o.refundStatus || `Initiated (₹${o.total.toLocaleString('en-IN')})`}</p>
+                        <p className="dark:text-[#868686] text-gray-500"><strong>Pickup Courier:</strong> FedEx Express Pickup (Ref: EX-RET-{o.orderId})</p>
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+
+            {/* Eligible Orders for Return */}
+            <div className="pt-6 border-t dark:border-[#262626] border-gray-200 space-y-4">
+              <h4 className="font-extrabold text-sm dark:text-[#F2F2F2] text-gray-900 uppercase tracking-wider">Eligible Orders for Return</h4>
+              <div className="space-y-4">
+                {orders.map((o) => {
+                  const isReturned = o.returnRequested || o.status === 'Returned' || o.status === 'Refunded' || o.status === 'Return Requested';
+                  return (
+                    <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-sm dark:text-[#F2F2F2] text-gray-900">{o.orderId}</span>
+                          <span className="text-xs dark:text-[#868686] text-gray-500">• {o.date}</span>
+                        </div>
+                        <p className="text-xs dark:text-[#868686] text-gray-500 mt-0.5">Payment: {o.paymentMethod} • Total: ₹{o.total.toLocaleString('en-IN')}</p>
+                        <p className="text-xs font-semibold text-[#D10000] mt-1">Status: {o.status}</p>
+                      </div>
+
+                      <div>
+                        {isReturned ? (
+                          <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1.5 border border-amber-200 rounded">
+                            Return Processed
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              const reason = prompt(`Enter return reason / details for Order ${o.orderId}:`, 'Wrong Size / Fit Adjustment');
+                              if (reason) {
+                                onRequestReturn(o.orderId, reason);
+                                alert(`Return request for Order ${o.orderId} submitted! Pickup label generated.`);
+                              }
+                            }}
+                            className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-extrabold uppercase px-5 py-2.5 rounded hover:bg-[#8a0000] transition-colors flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-sm">assignment_return</span>
+                            <span>Request Return</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 10. REFUNDS */}
+      {activeSubTab === 'refunds' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Refund Status & Transaction Ledger</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Itemized record of initiated and completed refunds, credited amounts, and original payment methods.</p>
+            </div>
+            <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-3 py-1 border border-emerald-200 rounded">
+              {orders.filter((o) => o.refundStatus || o.status === 'Refunded' || o.status === 'Refund Initiated' || o.returnRequested).length} Refund Record(s)
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {orders.filter((o) => o.refundStatus || o.status === 'Refunded' || o.status === 'Refund Initiated' || o.returnRequested).length === 0 ? (
+              <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-8 text-center text-xs dark:text-[#868686] text-gray-500">
+                No refund history found. When a return is approved or refund initiated, details will appear here.
+              </div>
+            ) : (
+              orders
+                .filter((o) => o.refundStatus || o.status === 'Refunded' || o.status === 'Refund Initiated' || o.returnRequested)
+                .map((o) => (
+                  <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-6 md:p-8 space-y-4 shadow-xs">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b dark:border-[#262626] border-gray-200 gap-3">
+                      <div>
+                        <span className="font-extrabold text-base text-[#D10000]">Related Order: {o.orderId}</span>
+                        <p className="text-xs dark:text-[#868686] text-gray-500 mt-0.5">Date: {o.date} • Method: {o.paymentMethod}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 text-xs font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 rounded">
+                          {o.refundStatus || `Refund Initiated (₹${o.total.toLocaleString('en-IN')})`}
+                        </span>
+                        <span className="font-black text-xl dark:text-[#F2F2F2] text-gray-900">₹{o.total.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+
+                    <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 rounded-lg border dark:border-[#262626] border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 text-xs">
+                      <div>
+                        <p className="font-extrabold dark:text-[#F2F2F2] text-gray-900">Return Reason: {o.returnReason || 'Fit / Size Adjustment'}</p>
+                        <p className="dark:text-[#868686] text-gray-500">Credited back to original payment channel: {o.paymentMethod}</p>
+                      </div>
+                      <span className="font-extrabold text-[#D10000] dark:bg-[#0D0D0D] bg-white px-3 py-1 border dark:border-[#262626] border-gray-200 rounded">
+                        Ref: TXN-REF-{o.orderId}
+                      </span>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 11. REVIEWS & RATINGS */}
+      {activeSubTab === 'reviews' && (
+        <div className="space-y-8">
+          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
+            <div>
+              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Product Reviews & Ratings</h3>
+              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Manage your written reviews, star ratings, and review pending silhouettes.</p>
+            </div>
+            <button
+              onClick={() => {
+                setReviewProductName('Apex Vol. 1 - Carbon Black');
+                setIsWritingReview(true);
+              }}
+              className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase px-5 py-2.5 hover:bg-[#8a0000]"
+            >
+              + Write Review
+            </button>
+          </div>
+
+          {/* Reviewed Products */}
+          <div className="space-y-4">
+            <h4 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900 uppercase tracking-wider">Reviewed Products ({reviews.length})</h4>
+            {reviews.length === 0 ? (
+              <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 text-center text-xs dark:text-[#868686] text-gray-500">
+                No reviews submitted yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((r) => (
+                  <div key={r.id} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h5 className="font-black text-base dark:text-[#F2F2F2] text-gray-900">{r.productName}</h5>
+                        <p className="text-xs dark:text-[#868686] text-gray-500">Reviewed on {r.date} • Verified Owner</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setReviewProductName(r.productName);
+                          setComment(r.comment);
+                          setRating(r.rating);
+                          setIsWritingReview(true);
+                        }}
+                        className="text-xs font-bold text-[#D10000] hover:underline bg-blue-50 px-3 py-1 border border-blue-200"
+                      >
+                        Edit Review
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {Array.from({ length: r.rating }).map((_, i) => (
+                        <span key={i} className="material-symbols-outlined text-sm font-variation-settings-fill">star</span>
+                      ))}
+                      <span className="text-xs dark:text-[#F2F2F2] text-gray-900 font-bold ml-2">{r.rating}.0 / 5.0 Stars</span>
+                    </div>
+                    <p className="text-xs text-[#45464f] dark:bg-[#1a1a1a] bg-gray-50 p-3 border dark:border-[#262626] border-gray-200 font-medium">"{r.comment}"</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Products Awaiting Review */}
+          <div className="pt-6 border-t dark:border-[#262626] border-gray-200 space-y-4">
+            <h4 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900 uppercase tracking-wider">Products Awaiting Review (1)</h4>
+            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 flex items-center justify-center p-1">
+                  <span className="material-symbols-outlined text-2xl dark:text-[#F2F2F2] text-gray-900">checkroom</span>
+                </div>
+                <div>
+                  <h5 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">Concrete V-2 - Obsidian Grey</h5>
+                  <p className="text-xs dark:text-[#868686] text-gray-500">Delivered on August 2, 2026 • Share your experience to earn VIP reward points.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setReviewProductName('Concrete V-2 - Obsidian Grey');
+                  setRating(5);
+                  setComment('');
+                  setIsWritingReview(true);
+                }}
+                className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-5 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000]"
+              >
+                Write Review Now
+              </button>
+            </div>
+          </div>
+
+          {isWritingReview && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-[#F2F2F2] bg-black/60 backdrop-blur-xs">
+              <form onSubmit={handleReviewSubmit} className="dark:bg-[#0D0D0D] bg-white w-full max-w-md p-6 border dark:border-[#262626] border-gray-200 space-y-4 text-xs">
+                <h3 className="text-lg font-black dark:text-[#F2F2F2] text-gray-900">Submit or Edit Review</h3>
+                <div>
+                  <label className="block font-bold uppercase mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    value={reviewProductName}
+                    onChange={(e) => setReviewProductName(e.target.value)}
+                    className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold uppercase mb-1">Star Rating</label>
+                  <select
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                    className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold"
+                  >
+                    <option value={5}>⭐⭐⭐⭐⭐ 5 Stars - Masterpiece</option>
+                    <option value={4}>⭐⭐⭐⭐ 4 Stars - Exceptional</option>
+                    <option value={3}>⭐⭐⭐ 3 Stars - Good</option>
+                    <option value={2}>⭐⭐ 2 Stars - Fair</option>
+                    <option value={1}>⭐ 1 Star - Poor</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold uppercase mb-1">Written Review</label>
+                  <textarea
+                    rows={4}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white"
+                    placeholder="Describe comfort, fit, and build quality..."
+                    required
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button type="button" onClick={() => setIsWritingReview(false)} className="w-1/2 dark:bg-[#1a1a1a] bg-gray-50 py-3 font-bold uppercase">Cancel</button>
+                  <button type="submit" className="w-1/2 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 py-3 font-bold uppercase">Save Review</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 12. RECENTLY VIEWED */}
+      {activeSubTab === 'recently-viewed' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Recently Viewed Silhouettes</h3>
+          <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b dark:border-[#262626] border-gray-200">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 dark:bg-[#1a1a1a] bg-gray-50 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-xl">visibility</span>
+                </div>
+                <div>
+                  <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">Apex Vol. 1 - Carbon Black</p>
+                  <p className="text-xs dark:text-[#868686] text-gray-500">Viewed today at 2:14 PM</p>
+                </div>
+              </div>
+              <button onClick={onShopClick} className="text-xs font-bold text-[#D10000] hover:underline">View Again</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 13. SAVED PRODUCTS */}
+      {activeSubTab === 'saved-products' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Saved Products & Collections</h3>
+          <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 text-center space-y-3">
+            <span className="material-symbols-outlined text-4xl dark:text-[#868686] text-gray-500">bookmark</span>
+            <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">Your saved drop collections are synchronized with Wishlist.</p>
+            <button onClick={() => setActiveSubTab('wishlist')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase px-6 py-3">
+              View Wishlist Silhouettes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 14. NOTIFICATIONS */}
+      {activeSubTab === 'notifications' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Notifications & Drop Alerts</h3>
+          <div className="space-y-3">
+            {notifications.map((n) => (
+              <div key={n.id} className={`p-4 border ${n.read ? 'dark:bg-[#0D0D0D] bg-white dark:border-[#262626] border-gray-200' : 'bg-blue-50/50 border-blue-200'} flex justify-between items-start`}>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs dark:text-[#F2F2F2] text-gray-900">{n.title}</span>
+                    {!n.read && <span className="w-2 h-2 rounded-full bg-[#D10000]"></span>}
+                  </div>
+                  <p className="text-xs text-[#45464f]">{n.message}</p>
+                  <p className="text-[10px] dark:text-[#868686] text-gray-500">{n.date}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 15. OFFERS & COUPONS */}
+      {activeSubTab === 'coupons' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Available Offers & Coupons</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="dark:bg-[#0D0D0D] bg-white border-2 border-dashed border-[#D10000] p-6 space-y-3">
+              <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5">VIP Drop Perk</span>
+              <h4 className="font-black text-lg dark:text-[#F2F2F2] text-gray-900">15% OFF Next Concrete Edit Release</h4>
+              <p className="text-xs dark:text-[#868686] text-gray-500">Use code <span className="font-bold dark:text-[#F2F2F2] text-gray-900">EDGEX15</span> at checkout.</p>
+            </div>
+            <div className="dark:bg-[#0D0D0D] bg-white border-2 border-dashed border-[#D10000] p-6 space-y-3">
+              <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-800 px-2 py-0.5">Free Express Shipping</span>
+              <h4 className="font-black text-lg dark:text-[#F2F2F2] text-gray-900">Complimentary Air Delivery Worldwide</h4>
+              <p className="text-xs dark:text-[#868686] text-gray-500">Applied automatically on orders over $200.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 16. SUPPORT */}
+      {activeSubTab === 'support' && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Customer Concierge & Support</h3>
+          <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 space-y-4 text-xs">
+            <p className="text-[#45464f]">
+              Need assistance with your sizing, order shipment, or custom drop inquiries? Our concierge team is on standby 24/7.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => alert('Live Concierge chat initiated.')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-6 py-3 font-bold uppercase">
+                Start Live Chat
+              </button>
+              <button onClick={() => alert('Support ticket created.')} className="dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 px-6 py-3 font-bold uppercase">
+                Submit Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 17. ACCOUNT SETTINGS */}
+      {activeSubTab === 'settings' && (
+        <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-8 space-y-6 text-xs">
+          <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Account & Security Settings</h3>
+          <div className="space-y-4 max-w-xl">
+            <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200">
+              <div>
+                <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">Two-Factor Authentication</p>
+                <p className="dark:text-[#868686] text-gray-500">Protect your account and limited drop access</p>
+              </div>
+              <span className="font-bold text-emerald-700 bg-emerald-50 px-3 py-1 border border-emerald-200">Enabled</span>
+            </div>
+            <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200">
+              <div>
+                <p className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900">Marketing & Drop SMS Alerts</p>
+                <p className="dark:text-[#868686] text-gray-500">Receive instant SMS notifications when limited editions launch</p>
+              </div>
+              <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#000f3f]" />
+            </div>
+            <button onClick={() => alert('Settings saved.')} className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-6 py-3 font-bold uppercase tracking-widest">
+              Save Preferences
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Address Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-[#F2F2F2] bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleAddressSubmit} className="dark:bg-[#0D0D0D] bg-white w-full max-w-md p-6 border dark:border-[#262626] border-gray-200 space-y-4 text-xs">
+            <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200">
+              <h3 className="text-lg font-black dark:text-[#F2F2F2] text-gray-900">{editingAddress ? 'Edit Address' : 'Add New Address'}</h3>
+              <button type="button" onClick={() => { setShowAddressModal(false); setEditingAddress(null); }} className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900">
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Full Name</label>
+                  <input type="text" value={addressForm.full_name} onChange={(e) => setAddressForm({...addressForm, full_name: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Phone</label>
+                  <input type="text" value={addressForm.phone} onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Street Address</label>
+                <input type="text" value={addressForm.street} onChange={(e) => setAddressForm({...addressForm, street: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Apartment, Suite, etc. (Optional)</label>
+                <input type="text" value={addressForm.apartment} onChange={(e) => setAddressForm({...addressForm, apartment: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">City</label>
+                  <input type="text" value={addressForm.city} onChange={(e) => setAddressForm({...addressForm, city: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">State</label>
+                  <input type="text" value={addressForm.state} onChange={(e) => setAddressForm({...addressForm, state: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">ZIP</label>
+                  <input type="text" value={addressForm.zip} onChange={(e) => setAddressForm({...addressForm, zip: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Country</label>
+                  <select value={addressForm.country} onChange={(e) => setAddressForm({...addressForm, country: e.target.value})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold">
+                    <option value="USA">United States</option>
+                    <option value="CAN">Canada</option>
+                    <option value="GBR">United Kingdom</option>
+                    <option value="AUS">Australia</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase dark:text-[#868686] text-gray-500 mb-1">Type</label>
+                  <select value={addressForm.type} onChange={(e) => setAddressForm({...addressForm, type: e.target.value as 'shipping' | 'billing'})} className="w-full p-2.5 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-bold">
+                    <option value="shipping">Shipping</option>
+                    <option value="billing">Billing</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="is_default" checked={addressForm.is_default} onChange={(e) => setAddressForm({...addressForm, is_default: e.target.checked})} className="w-4 h-4 accent-[#000f3f]" />
+                <label htmlFor="is_default" className="text-xs font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Set as default {addressForm.type} address</label>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button type="button" onClick={() => { setShowAddressModal(false); setEditingAddress(null); }} className="w-1/2 dark:bg-[#1a1a1a] bg-gray-50 py-3 font-bold uppercase">Cancel</button>
+              <button type="submit" className="w-1/2 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 py-3 font-bold uppercase">{editingAddress ? 'Update' : 'Save Address'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --animate-marquee: marquee 20s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+}
+
+/* Base styles - these ensure Tailwind generates the utility classes */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply bg-[#0D0D0D] text-[#F2F2F2] min-h-screen flex flex-col font-['Montserrat',sans-serif] antialiased;
+  }
+  
+  #root {
+    @apply flex-1;
+  }
+  
+  * {
+    @apply border-[#262626];
+  }
+  
+  ::selection {
+    @apply bg-[#D10000] text-white;
+  }
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

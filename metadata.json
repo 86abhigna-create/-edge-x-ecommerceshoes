@@ -1,0 +1,6 @@
+{
+  "name": "EDGE X",
+  "description": "High-End Men's Streetwear Footwear store with product catalog, cart, orders, and editorial lookbooks.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

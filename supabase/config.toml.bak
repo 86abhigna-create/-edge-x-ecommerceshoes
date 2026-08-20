@@ -1,0 +1,23 @@
+project_id = "qymkgzjcxpeqgctvsswq"
+
+[api]
+enabled = true
+port = 54321
+
+[db]
+enabled = true
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+
+[functions]
+enabled = true
+port = 54327
+verify_jwt = true

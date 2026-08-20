@@ -1,0 +1,163 @@
+src/components/Header.tsx:57:            className={`hover:text-[#000f3f] transition-colors ${activeTab === 'shop' ? 'text-[#0051d5] underline' : ''}`}
+src/components/Header.tsx:104:          className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-all ${
+src/components/Header.tsx:116:          className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border transition-all ${
+src/components/OrdersView.tsx:86:                    <span className={`px-3 py-1 text-[11px] font-black uppercase tracking-wider border rounded ${getStatusBadgeStyle(order.status)}`}>
+src/components/OrdersView.tsx:107:                              className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center transition-all ${
+src/components/OrdersView.tsx:118:                              className={`text-[9px] font-bold mt-1 uppercase leading-tight ${
+src/components/OrdersView.tsx:150:                          ${snap.price * snap.quantity}
+src/components/OrdersView.tsx:171:                          ${(item.product?.price || 0) * item.quantity}
+src/components/OrdersView.tsx:246:        const trackingNum = selectedOrder?.trackingNumber || `EX-TRK-${selectedOrder?.orderId.replace('EX-', '') || '982140'}`;
+src/components/OrdersView.tsx:270:                  <span className={`px-2.5 py-1 text-[10px] font-black uppercase rounded border ${
+src/components/OrdersView.tsx:308:                      <div className={`w-4 h-4 rounded-full mt-0.5 shrink-0 text-[10px] font-bold flex items-center justify-center ${
+src/components/OrdersView.tsx:317:                          <p className={`font-bold ${isCurrent ? 'text-[#0051d5] font-black' : isDone ? 'text-[#000f3f]' : 'text-[#767680]'}`}>
+src/components/CustomerDashboardView.tsx:118:    { id: 'orders', label: `My Orders (${orders.length})`, icon: 'package_2' },
+src/components/CustomerDashboardView.tsx:120:    { id: 'cart', label: `My Cart (${cartItems.length})`, icon: 'shopping_bag' },
+src/components/CustomerDashboardView.tsx:121:    { id: 'wishlist', label: `Wishlist (${wishlist.length})`, icon: 'favorite' },
+src/components/CustomerDashboardView.tsx:126:    { id: 'reviews', label: `Reviews & Ratings (${reviews.length})`, icon: 'star' },
+src/components/CustomerDashboardView.tsx:129:    { id: 'notifications', label: `Notifications (${notifications.filter(n => !n.read).length})`, icon: 'notifications' },
+src/components/CustomerDashboardView.tsx:158:            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider shrink-0 transition-all flex items-center gap-2 ${
+src/components/CustomerDashboardView.tsx:354:                      <span className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider border ${
+src/components/CustomerDashboardView.tsx:377:                                <span>Unit Price: <strong className="text-[#000f3f]">${snap.price}</strong></span>
+src/components/CustomerDashboardView.tsx:385:                              <p className="font-bold text-emerald-700">-$0.00</p>
+src/components/CustomerDashboardView.tsx:393:                              <p className="font-black text-base text-[#000f3f]">${snap.price * snap.quantity}</p>
+src/components/CustomerDashboardView.tsx:411:                                <span>Unit Price: <strong className="text-[#000f3f]">${item.product?.price || 0}</strong></span>
+src/components/CustomerDashboardView.tsx:419:                              <p className="font-bold text-emerald-700">-$0.00</p>
+src/components/CustomerDashboardView.tsx:427:                              <p className="font-black text-base text-[#000f3f]">${(item.product?.price || 0) * item.quantity}</p>
+src/components/CustomerDashboardView.tsx:444:                        <span className="font-black text-xl text-[#000f3f]">${o.total}</span>
+src/components/CustomerDashboardView.tsx:505:                      <span className="font-bold text-sm">${item.product.price * item.quantity}</span>
+src/components/CustomerDashboardView.tsx:628:                        <span>✓ Coupon "{cartActiveCoupon.code}" Active ({cartActiveCoupon.type === 'flat' ? `₹${cartActiveCoupon.amount} OFF` : `${cartActiveCoupon.amount}% OFF`})</span>
+src/components/CustomerDashboardView.tsx:649:                    <p className="text-xs text-[#767680]">Express Shipping: <strong className="text-emerald-700">{cartShipping === 0 ? 'FREE' : `₹${cartShipping.toLocaleString('en-IN')}`}</strong></p>
+src/components/CustomerDashboardView.tsx:712:                        <span className={`absolute top-2 right-2 px-2.5 py-0.5 text-[9px] font-black uppercase rounded border ${
+src/components/CustomerDashboardView.tsx:719:                          {isOutOfStock ? 'OUT OF STOCK' : isLowStock ? `LOW STOCK (${stock} LEFT)` : `IN STOCK (${stock} READY)`}
+src/components/CustomerDashboardView.tsx:773:                          alert(`Moved "${p.name}" to your shopping bag!`);
+src/components/CustomerDashboardView.tsx:775:                        className={`w-2/3 text-white py-2.5 text-xs font-bold uppercase rounded tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-xs ${
+src/components/CustomerDashboardView.tsx:869:                        <p className="text-[#767680]"><strong>Refund Status:</strong> {o.refundStatus || `Initiated (₹${o.total.toLocaleString('en-IN')})`}</p>
+src/components/CustomerDashboardView.tsx:902:                              const reason = prompt(`Enter return reason / details for Order ${o.orderId}:`, 'Wrong Size / Fit Adjustment');
+src/components/CustomerDashboardView.tsx:905:                                alert(`Return request for Order ${o.orderId} submitted! Pickup label generated.`);
+src/components/CustomerDashboardView.tsx:954:                          {o.refundStatus || `Refund Initiated (₹${o.total.toLocaleString('en-IN')})`}
+src/components/CustomerDashboardView.tsx:1153:              <div key={n.id} className={`p-4 border ${n.read ? 'bg-white border-[#c6c5d0]' : 'bg-blue-50/50 border-blue-200'} flex justify-between items-start`}>
+src/components/CustomerDashboardView.tsx:1181:              <p className="text-xs text-[#767680]">Applied automatically on orders over $200.</p>
+src/components/OwnerDashboardView.tsx:236:            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
+src/components/OwnerDashboardView.tsx:263:              <p className="text-2xl font-black text-[#000f3f] mt-1">${todaysSales.toLocaleString()}</p>
+src/components/OwnerDashboardView.tsx:268:              <p className="text-2xl font-black text-[#000f3f] mt-1">${totalRevenue.toLocaleString()}</p>
+src/components/OwnerDashboardView.tsx:387:                        <p className="font-black text-[#1a1c1b]">${p.price}</p>
+src/components/OwnerDashboardView.tsx:395:                        <p className={`font-bold text-[11px] ${p.inStock ? 'text-emerald-800' : 'text-red-600'}`}>
+src/components/OwnerDashboardView.tsx:396:                          {p.inStock ? `In Stock (${p.stockCount || 18})` : 'Out of Stock'}
+src/components/OwnerDashboardView.tsx:405:                          className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border flex items-center gap-1.5 transition-all ${
+src/components/OwnerDashboardView.tsx:412:                          <span className={`w-2 h-2 rounded-full ${isPublished ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+src/components/OwnerDashboardView.tsx:460:                  <button onClick={() => alert(`Editing category: ${cat}`)} className="w-1/2 bg-[#f4f4f2] text-[#000f3f] py-2 text-xs font-bold uppercase">Edit</button>
+src/components/OwnerDashboardView.tsx:461:                  <button onClick={() => alert(`Category ${cat} is locked.`)} className="w-1/2 bg-[#ffdad6] text-[#ba1a1a] py-2 text-xs font-bold uppercase">Delete</button>
+src/components/OwnerDashboardView.tsx:615:                      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+src/components/OwnerDashboardView.tsx:648:                                className={`p-3 rounded-lg border flex flex-col justify-between space-y-2 text-xs transition-all ${
+src/components/OwnerDashboardView.tsx:758:                      <span className="font-black text-base text-[#000f3f]">${o.total}</span>
+src/components/OwnerDashboardView.tsx:774:                          <span className="font-extrabold text-[#000f3f]">${snap.price * snap.quantity}</span>
+src/components/OwnerDashboardView.tsx:781:                          <span className="font-bold">${(item.product ? item.product.price : 0) * item.quantity}</span>
+src/components/OwnerDashboardView.tsx:809:                Black Circle Member ($1,420 Spend)
+src/components/OwnerDashboardView.tsx:837:                      Paid (${o.total})
+src/components/OwnerDashboardView.tsx:884:                      <p className="text-[#767680]"><strong>Total Order Amount:</strong> ${o.total} • <strong>Payment Channel:</strong> {o.paymentMethod}</p>
+src/components/OwnerDashboardView.tsx:885:                      <p className="text-[#767680]"><strong>Current Refund Status:</strong> {o.refundStatus || `Refund Initiated ($${o.total})`}</p>
+src/components/OwnerDashboardView.tsx:893:                          alert(`Order ${o.orderId} return approved according to policy.`);
+src/components/OwnerDashboardView.tsx:904:                          alert(`Order ${o.orderId} return request rejected according to policy.`);
+src/components/OwnerDashboardView.tsx:915:                          alert(`Refund initiated for Order ${o.orderId} ($${o.total}).`);
+src/components/OwnerDashboardView.tsx:926:                          alert(`Refund processed and completed for Order ${o.orderId} ($${o.total}).`);
+src/components/OwnerDashboardView.tsx:967:                        {o.status === 'Refunded' ? `Refunded: $${o.total}` : `Refund Initiated ($${o.total})`}
+src/components/OwnerDashboardView.tsx:973:                            alert(`Refund of $${o.total} successfully processed for Order ${o.orderId}.`);
+src/components/OwnerDashboardView.tsx:1012:                className={`px-3.5 py-1.5 font-bold uppercase rounded border transition-colors ${
+src/components/OwnerDashboardView.tsx:1042:                        <span className={`px-3 py-1 font-extrabold text-[11px] uppercase rounded border ${
+src/components/OwnerDashboardView.tsx:1069:                            alert(`Review by ${r.userName || 'Customer'} published according to policy.`);
+src/components/OwnerDashboardView.tsx:1080:                            alert(`Review ${r.id} flagged for policy inspection.`);
+src/components/OwnerDashboardView.tsx:1091:                            alert(`Review ${r.id} rejected / hidden.`);
+src/components/OwnerDashboardView.tsx:1102:                            alert(`Review ${r.id} deleted from database.`);
+src/components/OwnerDashboardView.tsx:1141:                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 font-bold">$15 OFF</span>
+src/components/OwnerDashboardView.tsx:1164:              const trackingNum = o.trackingNumber || `EX-TRK-${o.orderId.replace('EX-', '')}`;
+src/components/OwnerDashboardView.tsx:1185:                      <span className="font-black text-base text-[#000f3f]">${o.total}</span>
+src/components/OwnerDashboardView.tsx:1215:                        alert(`Order ${o.orderId} status set to Shipped.`);
+src/components/OwnerDashboardView.tsx:1224:                        alert(`Order ${o.orderId} status set to Out for Delivery.`);
+src/components/OwnerDashboardView.tsx:1233:                        alert(`Order ${o.orderId} marked as Delivered.`);
+src/components/OwnerDashboardView.tsx:1278:                className={`px-3.5 py-1.5 font-bold uppercase rounded border transition-colors shrink-0 ${
+src/components/OwnerDashboardView.tsx:1299:                details: 'Customer Alex Vance placed order for Apex Vol. 1 - Carbon Black (Size US 9.5). Total: $195.00',
+src/components/OwnerDashboardView.tsx:1309:                details: 'Instant UPI Payment ($195.00 via GPAY) successfully settled and verified.',
+src/components/OwnerDashboardView.tsx:1329:                details: 'Return received at fulfillment warehouse. Refund payout of $240.00 ready for store owner processing.',
+src/components/OwnerDashboardView.tsx:1376:                  <div className={`p-2.5 rounded-lg border ${item.color} shrink-0`}>
+src/components/OwnerDashboardView.tsx:1382:                        <span className={`px-2.5 py-0.5 text-[10px] font-black uppercase rounded border ${item.color}`}>
+src/components/OwnerDashboardView.tsx:1408:              <h4 className="font-black text-base text-[#000f3f]">Weekly Revenue ($)</h4>
+src/components/OwnerDashboardView.tsx:1461:              <p className="text-3xl font-black text-[#000f3f]">$235.00</p>
+src/components/OwnerDashboardView.tsx:1528:              <input type="text" defaultValue="LIMITED DROP 04 LIVE NOW — FREE EXPRESS SHIPPING WORLDWIDE ON ORDERS OVER $200" className="w-full p-3 border border-[#c6c5d0] bg-white font-bold" />
+src/components/OwnerDashboardView.tsx:1553:              <input type="text" defaultValue="USD ($)" className="w-full p-3 border border-[#c6c5d0] bg-white font-bold" />
+src/components/OwnerDashboardView.tsx:1601:                  <label className="block font-bold uppercase text-[#1a1c1b] mb-1">Price ($) *</label>
+src/components/OwnerDashboardView.tsx:1710:                        className={`px-3 py-1.5 border text-xs font-extrabold rounded transition-all ${
+src/components/OwnerDashboardView.tsx:1767:                    className={`p-3 border rounded-md cursor-pointer flex items-start gap-2.5 transition-all ${
+src/components/OwnerDashboardView.tsx:1790:                    className={`p-3 border rounded-md cursor-pointer flex items-start gap-2.5 transition-all ${
+src/components/BottomNav.tsx:15:        className={`flex flex-col items-center justify-center w-full h-full transition-all ${
+src/components/BottomNav.tsx:32:        className={`flex flex-col items-center justify-center w-full h-full transition-all ${
+src/components/BottomNav.tsx:49:        className={`flex flex-col items-center justify-center w-full h-full transition-all relative ${
+src/components/BottomNav.tsx:71:        className={`flex flex-col items-center justify-center w-full h-full transition-all ${
+src/components/CheckoutModal.tsx:185:      setCouponError('Invalid coupon. Try EDGEX10 ($25 OFF) or STEEP10 (10% OFF)');
+src/components/CheckoutModal.tsx:234:      if (paymentCategory === 'upi') pMethodLabel = `UPI (${upiApp.toUpperCase()} - ${upiId})`;
+src/components/CheckoutModal.tsx:235:      else if (paymentCategory === 'credit') pMethodLabel = `Credit Card (•••• ${cardDetails.number.slice(-4)})`;
+src/components/CheckoutModal.tsx:236:      else if (paymentCategory === 'debit') pMethodLabel = `Debit Card (•••• ${cardDetails.number.slice(-4)})`;
+src/components/CheckoutModal.tsx:237:      else if (paymentCategory === 'netbanking') pMethodLabel = `Net Banking (${selectedBank})`;
+src/components/CheckoutModal.tsx:238:      else if (paymentCategory === 'wallet') pMethodLabel = `Digital Wallet (${selectedWallet})`;
+src/components/CheckoutModal.tsx:303:                    className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center transition-all ${
+src/components/CheckoutModal.tsx:314:                    className={`text-[10px] font-bold mt-1 uppercase ${
+src/components/CheckoutModal.tsx:354:                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+src/components/CheckoutModal.tsx:385:                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
+src/components/CheckoutModal.tsx:484:                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+src/components/CheckoutModal.tsx:511:                            {isFree ? <strong className="text-emerald-700">FREE</strong> : `$${option.price}`}
+src/components/CheckoutModal.tsx:572:                        <span className="font-extrabold text-xs text-[#000f3f]">${item.product.price * item.quantity}</span>
+src/components/CheckoutModal.tsx:584:                    <span>✓ Coupon "{activeCoupon.code}" Active ({activeCoupon.type === 'flat' ? `$${activeCoupon.amount} OFF` : `${activeCoupon.amount}% OFF`})</span>
+src/components/CheckoutModal.tsx:608:                  <span className="font-bold text-[#000f3f]">${subtotal}</span>
+src/components/CheckoutModal.tsx:613:                    <span>-${couponDiscount}</span>
+src/components/CheckoutModal.tsx:618:                  <span className="font-bold">{shippingFee === 0 ? <strong className="text-emerald-700">FREE</strong> : `$${shippingFee}`}</span>
+src/components/CheckoutModal.tsx:622:                  <span className="text-[#0051d5]">${grandTotal}</span>
+src/components/CheckoutModal.tsx:674:                      className={`p-3 rounded-xl border text-left flex flex-col items-start gap-1 transition-all ${
+src/components/CheckoutModal.tsx:700:                          className={`py-2 px-1 text-[11px] font-black uppercase rounded border transition-colors ${
+src/components/CheckoutModal.tsx:798:                          className={`p-2 font-bold text-center rounded border text-[11px] ${
+src/components/CheckoutModal.tsx:835:                  <span>Verify Payment (${grandTotal})</span>
+src/components/CheckoutModal.tsx:865:                    A 6-digit verification security code was generated for authorization to complete transaction of <strong className="text-[#000f3f]">${grandTotal}</strong>.
+src/components/CheckoutModal.tsx:958:                        <span className="font-black text-[#000f3f]">${snap.price * snap.quantity}</span>
+src/components/CartDrawer.tsx:187:                          <span className="text-[10px] text-[#767680] line-through font-semibold">${originalPrice}</span>
+src/components/CartDrawer.tsx:191:                          ${item.product.price * item.quantity}
+src/components/CartDrawer.tsx:193:                        <span className="block text-[9px] text-[#767680]">(${item.product.price} each)</span>
+src/components/CartDrawer.tsx:212:                    <span>Coupon "{activeCoupon.code}" Applied ({activeCoupon.type === 'flat' ? `$${activeCoupon.amount} OFF` : `${activeCoupon.amount}% OFF`})</span>
+src/components/CartDrawer.tsx:240:                  <p className="text-[10px] text-[#767680]">Available coupons: <strong className="text-[#000f3f]">EDGEX10</strong> ($25 off), <strong className="text-[#000f3f]">STEEP10</strong> (10% off), <strong className="text-[#000f3f]">EDGE20</strong> (20% off)</p>
+src/components/CartDrawer.tsx:249:                <span className="font-bold text-[#000f3f]">${subtotal}</span>
+src/components/CartDrawer.tsx:254:                  <span>-${discountAmount}</span>
+src/components/CartDrawer.tsx:259:                <span className="font-bold">{shipping === 0 ? <strong className="text-emerald-700">FREE (Orders &gt; $200)</strong> : `$${shipping}`}</span>
+src/components/CartDrawer.tsx:263:                <span className="text-lg text-[#0051d5]">${grandTotal}</span>
+src/components/CartDrawer.tsx:276:              <span>Proceed to Secure Checkout — ${grandTotal}</span>
+src/components/ProductDetailModal.tsx:69:      alert(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+src/components/ProductDetailModal.tsx:73:      alert(`Only ${currentVariantStock} units available in stock for this variant.`);
+src/components/ProductDetailModal.tsx:88:      alert(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+src/components/ProductDetailModal.tsx:167:                        ? `In Stock (${currentVariantStock} available)`
+src/components/ProductDetailModal.tsx:168:                        : `In Stock (${product.stockCount || 18} total)`}
+src/components/ProductDetailModal.tsx:181:                  className={`bg-[#f4f4f2] p-2 rounded-lg border aspect-square flex items-center justify-center transition-all ${
+src/components/ProductDetailModal.tsx:187:                  <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
+src/components/ProductDetailModal.tsx:198:                  <p className="text-[11px] text-[#767680]">Free Express Delivery over $150</p>
+src/components/ProductDetailModal.tsx:231:                <span className="text-2xl font-black text-[#000f3f]">${product.price}</span>
+src/components/ProductDetailModal.tsx:232:                <span className="text-base text-[#767680] line-through font-semibold">${originalPrice}</span>
+src/components/ProductDetailModal.tsx:234:                  Save ${discountAmount} ({discountPercent}% OFF)
+src/components/ProductDetailModal.tsx:251:                        className={`px-3.5 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-2 ${
+src/components/ProductDetailModal.tsx:309:                        className={`py-2 px-1 text-xs font-extrabold rounded-lg border transition-all relative flex flex-col items-center justify-center ${
+src/components/ProductDetailModal.tsx:375:                <span className="text-[11px] text-[#767680]">Total: ${(product.price * quantity).toLocaleString()}</span>
+src/components/ProductDetailModal.tsx:385:                      className={`text-xs font-bold uppercase tracking-wider pb-1 transition-all ${
+src/components/ProductDetailModal.tsx:437:                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm ${
+src/components/ProductDetailModal.tsx:454:                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${
+src/components/ProductDetailModal.tsx:505:                              className={`p-2 rounded border text-[11px] flex justify-between items-center ${
+src/components/ProductDetailModal.tsx:515:                                className={`font-black px-1.5 py-0.5 rounded text-[10px] ${
+src/components/ProductDetailModal.tsx:523:                                {vOut ? 'OUT OF STOCK' : vLow ? `${v.stock} LOW STOCK` : `${v.stock} in stock`}
+src/App.tsx:205:              refundStatus: 'Refund Initiated ($' + o.total + ')',
+src/App.tsx:214:        message: `Order ${orderId} return request logged. Pickup scheduled & refund initiated.`,
+src/App.tsx:239:            cartItemId: `${product.id}-${size}-${chosenColor}-${Date.now()}`,
+src/App.tsx:347:        message: `Order ${newOrder.orderId} confirmed. Variant inventory matrix updated.`,
+src/App.tsx:495:                    className={`px-5 py-2 text-xs font-bold uppercase tracking-wider shrink-0 transition-all border rounded-full ${
+src/App.tsx:528:                      className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3.5 py-2 border rounded-full transition-all shadow-xs cursor-pointer ${
+src/App.tsx:585:                        <option value="under150">Under $150</option>
+src/App.tsx:586:                        <option value="150-220">$150 - $220</option>
+src/App.tsx:587:                        <option value="over220">Over $220</option>
+src/App.tsx:599:                            className={`px-3 py-1.5 text-[11px] rounded-lg font-bold transition-all border ${
+src/App.tsx:785:                            <span className="text-sm font-extrabold text-[#1a1c1b]">${shoe.price}</span>
+src/App.tsx:950:                        <span className="font-bold text-sm text-[#1a1c1b]">${item.product.price * item.quantity}</span>
+src/App.tsx:959:                      ${cartItems.reduce((acc, i) => acc + i.product.price * i.quantity, 0)}
+src/App.tsx:1001:                  className={`p-4 border text-left flex flex-col gap-1 transition-all rounded-xl ${
+src/App.tsx:1015:                  className={`p-4 border text-left flex flex-col gap-1 transition-all rounded-xl ${
