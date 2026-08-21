@@ -4,23 +4,32 @@ import type { Product, CartItem, Order, Review, Category, User, Address, Notific
 const FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL || `${supabaseUrl}/functions/v1`;
 
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  const response = await fetch(`${FUNCTIONS_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token}`,
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+  if (!isSupabaseConfigured) {
+    return null;
   }
+  try {
+    const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    const session = data?.session;
+    
+    const response = await fetch(`${FUNCTIONS_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+        ...options.headers,
+      },
+    });
 
-  return response.json();
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    return response.json();
+  } catch (err) {
+    console.warn(`[API] fetchWithAuth notice for ${endpoint}:`, err);
+    return null;
+  }
 }
 
 // Products API
@@ -335,51 +344,65 @@ export const reviewsApi = {
 // Auth API
 export const authApi = {
   signUp: async (email: string, password: string, fullName?: string) => {
+    if (!isSupabaseConfigured) {
+      return { user: { id: 'demo-user', email } };
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
       },
-    });
+    }).catch((err) => ({ data: null, error: err }));
     if (error) throw error;
     return data;
   },
 
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!isSupabaseConfigured) {
+      return { user: { id: 'demo-user', email } };
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password }).catch((err) => ({ data: null, error: err }));
     if (error) throw error;
     return data;
   },
 
   signOut: async () => {
-    const { error } = await supabase.auth.signOut();
+    if (!isSupabaseConfigured) return;
+    const { error } = await supabase.auth.signOut().catch((err) => ({ error: err }));
     if (error) throw error;
   },
 
   resetPassword: async (email: string) => {
+    if (!isSupabaseConfigured) return;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
-    });
+    }).catch((err) => ({ error: err }));
     if (error) throw error;
   },
 
   updatePassword: async (password: string) => {
-    const { error } = await supabase.auth.updateUser({ password });
+    if (!isSupabaseConfigured) return;
+    const { error } = await supabase.auth.updateUser({ password }).catch((err) => ({ error: err }));
     if (error) throw error;
   },
 
   getSession: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session;
+    if (!isSupabaseConfigured) return null;
+    const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    return data?.session || null;
   },
 
   getUser: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
+    if (!isSupabaseConfigured) return null;
+    const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+    return data?.user || null;
   },
 
   onAuthStateChange: (callback: (event: string, session: any) => void) => {
+    if (!isSupabaseConfigured) {
+      return { data: { subscription: { unsubscribe: () => {} } } };
+    }
     return supabase.auth.onAuthStateChange(callback);
   },
 };
