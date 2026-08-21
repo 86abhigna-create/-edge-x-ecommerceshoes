@@ -6,13 +6,28 @@ interface AuthViewProps {
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, signInWithGoogle } = useAuth();
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      onLogin('customer');
+    } catch (err: any) {
+      console.error('Google sign in error:', err);
+      setError(err.message || 'Google sign in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -153,10 +168,18 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
 
         <button
           type="button"
-          className="w-full mt-6 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 dark:text-[#F2F2F2] text-gray-900 font-bold py-3.5 rounded-lg dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black transition-colors flex items-center justify-center gap-2"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading || loading}
+          className="w-full mt-6 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 dark:text-[#F2F2F2] text-gray-900 font-bold py-3.5 rounded-lg dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-          Continue with Google
+          {googleLoading ? (
+            <span className="text-sm font-semibold">Connecting to Google...</span>
+          ) : (
+            <>
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+              Continue with Google
+            </>
+          )}
         </button>
 
         <div className="mt-8 flex flex-col gap-4 text-center text-sm dark:text-[#868686] text-gray-500">

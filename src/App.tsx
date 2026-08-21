@@ -122,7 +122,20 @@ export default function App() {
   ]);
   
   // API hooks for Supabase persistence
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+
+  // Keep userRole in sync when user signs in or out
+  React.useEffect(() => {
+    if (user) {
+      const email = user.email || '';
+      if (email.toLowerCase().includes('admin') || user.user_metadata?.role === 'owner') {
+        setUserRole('owner');
+      } else {
+        setUserRole('customer');
+      }
+    }
+  }, [user]);
+
   const addToCartMutation = useAddToCart();
   const updateCartMutation = useUpdateCartItem();
   const removeFromCartMutation = useRemoveFromCart();
@@ -597,10 +610,15 @@ export default function App() {
     return 0;
   });
 
-  const handleLogout = () => {
-  setUserRole('guest');
-  setActiveTab('shop');
-};
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch {
+      // ignore
+    }
+    setUserRole('guest');
+    setActiveTab('shop');
+  };
 
   if (userRole === 'guest') {
   return (
