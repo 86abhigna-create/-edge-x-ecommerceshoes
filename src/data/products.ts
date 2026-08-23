@@ -22,7 +22,7 @@ export const PRODUCTS: Product[] = [
     price: 240,
     discount_percent: 0,
     category: 'New-Release Shoe',
-    image: '/src/assets/images/sneaker_product_1_1786357533613.jpg',
+    image: 'https://res.cloudinary.com/jn4npnn4/image/upload/v1787498880/download_3.jpg',
     altText: 'A pristine white minimalist high-top streetwear sneaker angled sharply against a neutral off-white background.',
     description: 'The Apex Vol. 1 is an architectural masterpiece featuring pristine white premium leather, precise multi-panel construction, and a chunky shock-absorbing rubber outsole engineered for the concrete landscape.',
     materials: ['Full-grain Italian Calfskin', 'Ballistic Mesh Lining', 'Vibram Traction Outsole'],
