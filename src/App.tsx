@@ -98,8 +98,8 @@ export default function App() {
     setFilterBestSellers(false);
   };
   
-  // Authentication & Authorization state
-  const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('customer');
+  // Authentication & Authorization state - starts on login page (guest)
+  const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('guest');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [ownerPinInput, setOwnerPinInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
@@ -624,15 +624,19 @@ export default function App() {
   };
 
   if (userRole === 'guest') {
-  return (
-    <AuthView 
-      onLogin={(role) => {
-        setUserRole(role);
-        setActiveTab('shop');
-      }} 
-    />
-  );
-}
+    return (
+      <AuthView 
+        onLogin={(role) => {
+          setUserRole(role);
+          setActiveTab('shop');
+        }}
+        onContinueAsGuest={() => {
+          setUserRole('customer');
+          setActiveTab('shop');
+        }}
+      />
+    );
+  }
   return (
     <div className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 min-h-screen flex flex-col font-['Inter',sans-serif] pt-16 pb-20 md:pb-0">
       {/* Top App Bar */}
