@@ -33,19 +33,22 @@ export default function App() {
       src: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
       subtitle: "Official Brand Drop",
       title: "EDGEX",
-      desc: "The pinnacle of futuristic streetwear & precision engineered footwear."
+      desc: "The pinnacle of futuristic streetwear & precision engineered footwear.",
+      fit: "cover" as const
     },
     {
-      src: "/src/assets/images/hero_lifestyle_1_1786357659311.jpg",
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787501254/download_4.jpg",
       subtitle: "Fall/Winter 2026 Collection",
       title: "Step Into\nThe Edge",
-      desc: "Discover high-end architectural aesthetics and raw daily functionality."
+      desc: "Discover high-end architectural aesthetics and raw daily functionality.",
+      fit: "contain" as const
     },
     {
-      src: "/src/assets/images/hero_lifestyle_3_1786211129161.jpg",
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787502109/Thrilled_to_team_up_with_Symbol_Premium_on_this_exciting_project_Stay_tuned_for_something_special_photoshoot_creativeproductshoot.jpg",
       subtitle: "Essential Utility",
       title: "Urban\nCamouflage",
-      desc: "Sleek aesthetics with cinematic lighting and ultra-sharp focus."
+      desc: "Sleek aesthetics with cinematic lighting and ultra-sharp focus.",
+      fit: "contain" as const
     }
   ];
 
@@ -96,7 +99,7 @@ export default function App() {
   };
   
   // Authentication & Authorization state
-  const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('guest');
+  const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('customer');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [ownerPinInput, setOwnerPinInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
@@ -654,23 +657,50 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full aspect-[4/5] md:aspect-[21/9] dark:bg-[#0D0D0D] bg-black flex flex-col justify-end p-6 md:p-12 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-sm mx-0 md:mx-4 mt-0 md:mt-4 group">
+            <section className="relative w-full min-h-[440px] sm:min-h-[500px] md:min-h-[560px] aspect-[4/5] sm:aspect-[16/10] md:aspect-[2.2/1] dark:bg-[#0D0D0D] bg-black flex flex-col justify-end p-6 md:p-12 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-md mx-0 md:mx-4 mt-0 md:mt-4 group">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
-                  className={`absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out ${idx === activeHeroIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  className={`absolute inset-0 z-0 transition-opacity duration-700 ease-in-out ${idx === activeHeroIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                   style={{ opacity: idx === activeHeroIndex ? 1 : 0, visibility: idx === activeHeroIndex ? 'visible' : 'hidden' }}
                 >
-                  <img
-                    className="w-full h-full object-cover opacity-100 brightness-115 saturate-110 contrast-105 object-center transition-transform duration-[10000ms] scale-100 group-hover:scale-105"
-                    alt={hero.title}
-                    src={hero.src}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/hero_custom.png';
-                    }}
-                  />
-                  {/* Subtle dark gradient only at bottom for button readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                  {hero.fit === 'contain' ? (
+                    <>
+                      {/* Blurred ambient atmosphere behind */}
+                      <img
+                        className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-125 pointer-events-none"
+                        alt=""
+                        aria-hidden="true"
+                        src={hero.src}
+                      />
+                      {/* Full uncropped image */}
+                      <img
+                        className="relative z-1 w-full h-full object-contain object-center transition-transform duration-[8000ms] scale-100 group-hover:scale-102"
+                        alt={hero.title}
+                        src={hero.src}
+                        loading={idx === 0 ? 'eager' : 'lazy'}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/hero_custom.png';
+                        }}
+                      />
+                      {/* Subtle readability gradient */}
+                      <div className="absolute inset-0 z-2 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    </>
+                  ) : (
+                    <>
+                      <img
+                        className="w-full h-full object-cover object-center transition-transform duration-[10000ms] scale-100 group-hover:scale-105"
+                        alt={hero.title}
+                        src={hero.src}
+                        loading={idx === 0 ? 'eager' : 'lazy'}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/hero_custom.png';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent md:from-black/80 md:via-black/20 md:to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent hidden md:block"></div>
+                    </>
+                  )}
                 </div>
               ))}
 
@@ -688,6 +718,11 @@ export default function App() {
                     <h2 className="text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] font-['Bebas_Neue',sans-serif] text-white tracking-normal uppercase whitespace-pre-line drop-shadow-md">
                       {heroImages[activeHeroIndex].title}
                     </h2>
+                  )}
+                  {heroImages[activeHeroIndex].desc && (
+                    <p className="text-gray-200 text-xs md:text-sm font-medium max-w-md mt-2 drop-shadow-sm line-clamp-2">
+                      {heroImages[activeHeroIndex].desc}
+                    </p>
                   )}
                 </div>
                 <div className="flex gap-4 mt-1">
