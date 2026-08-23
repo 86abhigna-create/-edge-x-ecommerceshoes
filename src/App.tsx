@@ -98,7 +98,7 @@ export default function App() {
     setFilterBestSellers(false);
   };
   
-  // Authentication & Authorization state - starts on login page (guest)
+  // Authentication & Authorization state - always starts on login page (guest)
   const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('guest');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [ownerPinInput, setOwnerPinInput] = useState<string>('');
@@ -127,15 +127,10 @@ export default function App() {
   // API hooks for Supabase persistence
   const { user, signOut } = useAuth();
 
-  // Keep userRole in sync when user signs in or out
+  // If user signs out, reset to guest
   React.useEffect(() => {
-    if (user) {
-      const email = user.email || '';
-      if (email.toLowerCase().includes('admin') || user.user_metadata?.role === 'owner') {
-        setUserRole('owner');
-      } else {
-        setUserRole('customer');
-      }
+    if (!user) {
+      setUserRole('guest');
     }
   }, [user]);
 

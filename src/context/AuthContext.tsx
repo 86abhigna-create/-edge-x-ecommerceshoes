@@ -44,24 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Check for local session first
-        const cachedUser = localStorage.getItem('edgex_auth_user');
-        if (cachedUser) {
-          try {
-            const parsed = JSON.parse(cachedUser);
-            setUser(parsed);
-            setAppUser({
-              id: parsed.id || 'demo-user',
-              email: parsed.email || 'alex.vance@gmail.com',
-              full_name: parsed.user_metadata?.full_name || 'Alex Vance',
-              avatar_url: parsed.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-              role: parsed.user_metadata?.role || (parsed.email?.toLowerCase().includes('admin') ? 'owner' : 'customer'),
-            });
-          } catch {
-            // ignore
-          }
-        }
-
         if (isSupabaseConfigured) {
           const { data, error } = await supabase.auth.getSession().catch(() => ({ data: { session: null }, error: null }));
           if (error) {
