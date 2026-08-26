@@ -12,6 +12,46 @@ import {
   BarChart,
   Bar
 } from 'recharts';
+import {
+  LayoutDashboard,
+  Package,
+  Layers,
+  Boxes,
+  Ruler,
+  Palette,
+  Warehouse,
+  ShoppingBag,
+  Users,
+  CreditCard,
+  RotateCcw,
+  Receipt,
+  Star,
+  TicketPercent,
+  Truck,
+  Bell,
+  TrendingUp,
+  BarChart3,
+  FileText,
+  Headphones,
+  Globe,
+  Settings,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  X,
+  Search,
+  ExternalLink,
+  LogOut,
+  ShieldCheck,
+  Zap,
+  Clock,
+  ArrowLeft,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Plus,
+} from 'lucide-react';
 
 interface OwnerDashboardViewProps {
   products: Product[];
@@ -60,8 +100,27 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
   onLogout,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<string>('overview');
+  const [recentTabs, setRecentTabs] = useState<string[]>(['overview', 'products', 'orders', 'sales']);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [reviewFilter, setReviewFilter] = useState<string>('all');
   const [notifFilter, setNotifFilter] = useState<string>('all');
+  const [sidebarSearch, setSidebarSearch] = useState<string>('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+
+  const handleSelectTab = (tabId: string) => {
+    setActiveSubTab(tabId);
+    setRecentTabs((prev) => {
+      const filtered = prev.filter((id) => id !== tabId);
+      return [tabId, ...filtered].slice(0, 4);
+    });
+  };
+
+  const toggleGroupCollapse = (groupName: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupName]: !prev[groupName],
+    }));
+  };
   
   // Product Form Modal state
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -187,72 +246,555 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
   const returnsCount = 4;
   const pendingRefundsCount = 1;
 
-  const navItems = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'products', label: 'Products' },
-    { id: 'categories', label: 'Categories' },
-    { id: 'variants', label: 'Variants' },
-    { id: 'sizes', label: 'Sizes' },
-    { id: 'colors', label: 'Colors' },
-    { id: 'inventory', label: 'Inventory' },
-    { id: 'orders', label: 'Orders' },
-    { id: 'customers', label: 'Customers' },
-    { id: 'payments', label: 'Payments' },
-    { id: 'returns', label: 'Returns' },
-    { id: 'refunds', label: 'Refunds' },
-    { id: 'reviews', label: 'Reviews' },
-    { id: 'coupons', label: 'Coupons & Discounts' },
-    { id: 'deliveries', label: 'Deliveries' },
-    { id: 'notifications', label: 'Notifications' },
-    { id: 'sales', label: 'Sales' },
-    { id: 'analytics', label: 'Analytics' },
-    { id: 'reports', label: 'Reports' },
-    { id: 'support', label: 'Customer Support' },
-    { id: 'website', label: 'Website Management' },
-    { id: 'settings', label: 'Settings' },
+  interface NavItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string | number;
+    badgeColor?: string;
+  }
+
+  interface NavGroup {
+    group: string;
+    items: NavItem[];
+  }
+
+  const optionDescriptions: Record<string, string> = {
+    overview: 'High-level operational pulse, real-time revenue, conversion rates, and recent orders.',
+    sales: 'Detailed sales performance metrics, revenue trajectories, and top-earning products.',
+    analytics: 'Customer traffic breakdown, bounce rates, conversion funnels, and cart abandonment insights.',
+    reports: 'Exportable executive performance summaries, quarterly projections, and balance sheets.',
+    products: 'Manage active footwear drops, create new products, toggle availability, and edit metadata.',
+    categories: 'Organize drops into High-Top, Low-Top, Runners, Boots, and Luxury categories.',
+    variants: 'Configure product SKU editions, limited-edition colorways, and material variations.',
+    sizes: 'Standard US/UK/EU sizing matrix and size-specific availability management.',
+    colors: 'Define brand colorways, hex codes, material finishes, and accent combinations.',
+    inventory: 'Real-time warehouse stock tracking, threshold warnings, and low-inventory restock alerts.',
+    orders: 'Review customer fulfillment pipeline, process pending orders, and print shipping tags.',
+    deliveries: 'Courier routing, DHL/FedEx dispatch status, tracking numbers, and delivery confirmation.',
+    returns: 'Manage customer exchange and return merchandise authorizations (RMA).',
+    refunds: 'Authorize customer payment reversals, refund balances, and process store credits.',
+    payments: 'Stripe, Apple Pay, and cryptocurrency gateway transactions and payout logs.',
+    customers: 'Customer CRM directory, lifetime value metrics, VIP tier statuses, and order histories.',
+    reviews: 'Moderate verified buyer feedback, ratings, review comments, and customer media.',
+    coupons: 'Create promotional voucher codes, percentage discounts, and countdown drop promos.',
+    notifications: 'Configure real-time system alerts, drop broadcast emails, and inventory alerts.',
+    support: 'Handle live customer concierge tickets, live inquiries, and VIP support queues.',
+    website: 'Customize store hero banners, announcement tickers, lookbooks, and homepage layout.',
+    settings: 'Security controls, 2-factor authentication, team permissions, and API credentials.',
+  };
+
+  // Grouped Navigation Items with Icons and Badges
+  const navigationGroups: NavGroup[] = [
+    {
+      group: 'Analytics & Performance',
+      items: [
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'sales', label: 'Sales Performance', icon: TrendingUp },
+        { id: 'analytics', label: 'Store Analytics', icon: BarChart3 },
+        { id: 'reports', label: 'Executive Reports', icon: FileText },
+      ],
+    },
+    {
+      group: 'Catalog & Merchandising',
+      items: [
+        { id: 'products', label: 'Products Catalog', icon: Package, badge: products.length },
+        { id: 'categories', label: 'Categories', icon: Layers, badge: CATEGORIES.length - 1 },
+        { id: 'variants', label: 'Product Variants', icon: Boxes },
+        { id: 'sizes', label: 'Sizes Matrix', icon: Ruler },
+        { id: 'colors', label: 'Colorways & Palettes', icon: Palette },
+        {
+          id: 'inventory',
+          label: 'Inventory & Stock',
+          icon: Warehouse,
+          badge: lowStockCount > 0 ? `${lowStockCount} Low` : undefined,
+          badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+        },
+      ],
+    },
+    {
+      group: 'Orders & Operations',
+      items: [
+        {
+          id: 'orders',
+          label: 'Customer Orders',
+          icon: ShoppingBag,
+          badge: pendingOrders > 0 ? `${pendingOrders} Pending` : undefined,
+          badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
+        },
+        { id: 'deliveries', label: 'Deliveries & Logistics', icon: Truck },
+        { id: 'returns', label: 'Product Returns', icon: RotateCcw, badge: returnsCount },
+        { id: 'refunds', label: 'Refunds Processing', icon: Receipt, badge: pendingRefundsCount },
+        { id: 'payments', label: 'Payments & Gateways', icon: CreditCard },
+      ],
+    },
+    {
+      group: 'Customer & Community',
+      items: [
+        { id: 'customers', label: 'Customer Base', icon: Users, badge: totalCustomers },
+        { id: 'reviews', label: 'Reviews & Feedback', icon: Star, badge: reviews.length },
+        { id: 'coupons', label: 'Coupons & Discounts', icon: TicketPercent, badge: '4 Active' },
+        {
+          id: 'notifications',
+          label: 'System Notifications',
+          icon: Bell,
+          badge: notifications.filter((n) => !n.read).length || 3,
+        },
+        { id: 'support', label: 'Customer Support', icon: Headphones, badge: 'Live' },
+      ],
+    },
+    {
+      group: 'Storefront & Settings',
+      items: [
+        { id: 'website', label: 'Website Management', icon: Globe },
+        { id: 'settings', label: 'Settings & Security', icon: Settings },
+      ],
+    },
   ];
 
-  return (
-    <div className="w-full max-w-7xl mx-auto px-5 md:px-16 py-8 pb-24">
-      {/* Top Banner */}
-      <div className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-[#b7c4fd]">Owner & Operations Portal</span>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">EDGEX Central Dashboard</h1>
-          <p className="text-xs text-[#b7c4fd] mt-1">Real-time inventory, sales analytics, and order fulfillment control.</p>
+  // Flattened for search
+  const allNavItems: NavItem[] = navigationGroups.flatMap((g) => g.items);
+  const filteredGroups: NavGroup[] = navigationGroups
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((item: NavItem) =>
+        item.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        item.id.toLowerCase().includes(sidebarSearch.toLowerCase())
+      ),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const activeItemDetails: NavItem = allNavItems.find((item) => item.id === activeSubTab) || allNavItems[0];
+  const activeGroup = navigationGroups.find((g) => g.items.some((item) => item.id === activeSubTab));
+
+  const renderSidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Sidebar Header & Search */}
+      <div className="p-4 border-b dark:border-[#262626] border-gray-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white font-black text-xs font-['Bebas_Neue',sans-serif]">
+              EX
+            </div>
+            <div>
+              <p className="text-xs font-bold dark:text-white text-gray-900 leading-none">Console Nav</p>
+              <p className="text-[10px] dark:text-neutral-400 text-gray-500 mt-0.5">22 Operational Controls</p>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded">
+            Admin
+          </span>
         </div>
-        <div className="flex gap-2">
+
+        {/* Real-time search filter inside sidebar */}
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            value={sidebarSearch}
+            onChange={(e) => setSidebarSearch(e.target.value)}
+            placeholder="Search all 22 options..."
+            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#2A2A2A] border-gray-200 dark:text-white text-gray-900 placeholder:text-neutral-500 focus:outline-none focus:border-red-500 transition-colors"
+          />
+          {sidebarSearch && (
+            <button
+              onClick={() => setSidebarSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 text-xs font-bold"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Recently visited pills */}
+        {recentTabs.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1 text-[10px] dark:text-neutral-400 text-gray-500 font-semibold mb-1">
+              <Clock className="w-3 h-3 text-neutral-400" />
+              <span>Recent Tabs</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {recentTabs.map((tabId) => {
+                const tab = allNavItems.find((n) => n.id === tabId);
+                if (!tab) return null;
+                const isActive = activeSubTab === tabId;
+                return (
+                  <button
+                    key={tabId}
+                    onClick={() => {
+                      handleSelectTab(tabId);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className={`px-2 py-0.5 text-[10px] rounded-md transition-colors cursor-pointer truncate max-w-[110px] ${
+                      isActive
+                        ? 'bg-red-600 text-white font-bold'
+                        : 'dark:bg-[#1f1f1f] bg-gray-100 dark:text-neutral-300 text-gray-700 hover:bg-red-500/10 hover:text-red-500'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Groups with Collapsible Accordions */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+        {filteredGroups.length === 0 ? (
+          <div className="py-8 text-center text-xs dark:text-neutral-500 text-gray-400">
+            No matching options found.
+          </div>
+        ) : (
+          filteredGroups.map((grp) => {
+            const isCollapsed = !sidebarSearch && !!collapsedGroups[grp.group];
+            return (
+              <div key={grp.group} className="space-y-1">
+                <button
+                  onClick={() => toggleGroupCollapse(grp.group)}
+                  className="w-full flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider dark:text-neutral-400 text-gray-500 px-3 py-1.5 rounded-lg dark:hover:bg-[#1a1a1a] hover:bg-gray-100 transition-colors group cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>{grp.group}</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full dark:bg-[#222] bg-gray-200 text-neutral-400">
+                      {grp.items.length}
+                    </span>
+                  </span>
+                  {isCollapsed ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-300" />
+                  ) : (
+                    <ChevronUp className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-300" />
+                  )}
+                </button>
+
+                {!isCollapsed && (
+                  <div className="space-y-0.5 pt-0.5">
+                    {grp.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeSubTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            handleSelectTab(item.id);
+                            setIsMobileSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
+                            isActive
+                              ? 'bg-red-600 text-white font-bold shadow-md shadow-red-600/20'
+                              : 'dark:text-neutral-300 text-gray-700 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Icon
+                              className={`w-4 h-4 shrink-0 transition-colors ${
+                                isActive ? 'text-white' : 'dark:text-neutral-400 text-gray-500 group-hover:text-red-500'
+                              }`}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+
+                          {item.badge !== undefined && (
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : item.badgeColor ||
+                                    'dark:bg-[#222] bg-gray-200 dark:text-neutral-300 text-gray-700'
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Sidebar Footer */}
+      <div className="p-3 border-t dark:border-[#262626] border-gray-200 dark:bg-[#141414] bg-gray-50/50 rounded-b-2xl">
+        <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
+          <div className="w-7 h-7 rounded-full bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 text-xs font-black">
+            OP
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">Store Admin</p>
+            <p className="text-[10px] dark:text-neutral-500 text-gray-400 truncate">admin@edgex.com</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 pt-1">
           <button
             onClick={onSwitchToCustomer}
-            className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] transition-colors"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 text-[10px] font-bold dark:bg-[#222] bg-white border dark:border-[#333] border-gray-200 dark:text-neutral-300 text-gray-700 rounded-lg hover:border-red-500 transition-colors cursor-pointer"
           >
-            View Storefront →
+            <span>Customer View</span>
+            <ExternalLink className="w-2.5 h-2.5" />
           </button>
           <button
             onClick={onLogout}
-            className="bg-transparent border dark:border-[#F2F2F2] border-black dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] hover:dark:text-[#0D0D0D] text-white transition-colors"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 text-[10px] font-bold dark:bg-red-950/30 bg-red-50 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
           >
-            Log Out
+            <LogOut className="w-2.5 h-2.5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full pb-20">
+      {/* Top Banner */}
+      <div className="bg-gradient-to-r from-[#B00000] via-[#D10000] to-[#800000] text-white p-5 sm:p-6 mb-6 rounded-2xl shadow-xl mx-3 sm:mx-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="lg:hidden p-2.5 bg-black/40 hover:bg-black/60 text-white rounded-xl border border-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            aria-label="Toggle navigation sidebar"
+          >
+            {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-black/40 px-2.5 py-0.5 rounded text-white border border-white/10">
+                Owner &amp; Operations Portal
+              </span>
+              <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Node Online
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mt-1 font-['Bebas_Neue',sans-serif]">
+              EDGEX Central Dashboard
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+          <button
+            onClick={onSwitchToCustomer}
+            className="bg-black hover:bg-neutral-900 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
+          >
+            <span>View Storefront</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onLogout}
+            className="bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Log Out</span>
           </button>
         </div>
       </div>
 
-      {/* Sub Tabs Bar (Scrollable horizontally) */}
-      <div className="flex gap-2 border-b dark:border-[#262626] border-gray-200 mb-8 pb-3 overflow-x-auto whitespace-nowrap">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveSubTab(item.id)}
-            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-              activeSubTab === item.id
-                ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900'
-                : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+      {/* Main Layout Container: Sidebar + Content */}
+      <div className="flex flex-col lg:flex-row gap-6 px-3 sm:px-6">
+        {/* DESKTOP SIDEBAR */}
+        <aside className="hidden lg:block w-72 shrink-0">
+          <div className="sticky top-20 dark:bg-[#121212] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-6.5rem)] flex flex-col">
+            {renderSidebarContent()}
+          </div>
+        </aside>
+
+        {/* MOBILE SIDEBAR MODAL / DRAWER */}
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+            {/* Drawer */}
+            <div className="relative w-4/5 max-w-xs dark:bg-[#121212] bg-white h-full shadow-2xl z-10 flex flex-col overflow-hidden">
+              <div className="p-4 border-b dark:border-[#262626] border-gray-200 flex items-center justify-between">
+                <span className="font-bold text-sm dark:text-white text-gray-900 uppercase tracking-wider">
+                  Dashboard Navigation
+                </span>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="p-1.5 rounded-lg dark:hover:bg-neutral-800 hover:bg-gray-100 text-neutral-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                {renderSidebarContent()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* RIGHT MAIN CONTENT AREA */}
+        <main className="flex-1 min-w-0">
+          {/* Quick Actions Shortcuts Bar */}
+          <div className="mb-4 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-1.5 min-w-max">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider dark:text-neutral-500 text-gray-400 mr-1 flex items-center gap-1">
+                <Zap className="w-3 h-3 text-amber-500" />
+                Quick Jump:
+              </span>
+              <button
+                onClick={() => handleSelectTab('overview')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'overview'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Overview</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleSelectTab('products');
+                  handleOpenAdd();
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold dark:bg-red-950/40 bg-red-50 border border-red-500/30 text-red-400 hover:bg-red-600 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Product</span>
+              </button>
+              <button
+                onClick={() => handleSelectTab('orders')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'orders'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Orders</span>
+                {pendingOrders > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 bg-red-500/20 text-red-400 rounded-full font-black">
+                    {pendingOrders}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('inventory')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'inventory'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Warehouse className="w-3.5 h-3.5" />
+                <span>Inventory</span>
+                {lowStockCount > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-400 rounded-full font-black">
+                    {lowStockCount} Low
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('sales')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'sales'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Sales Stats</span>
+              </button>
+              <button
+                onClick={() => handleSelectTab('customers')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'customers'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>CRM</span>
+              </button>
+              <button
+                onClick={() => handleSelectTab('support')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'support'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Headphones className="w-3.5 h-3.5" />
+                <span>Support</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Contextual Section Header Banner */}
+          <div className="dark:bg-[#121212] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 text-xs flex-wrap">
+                  <span className="dark:text-neutral-500 text-gray-400">Owner Portal</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />
+                  <span className="dark:text-neutral-400 text-gray-600 font-medium">{activeGroup?.group}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />
+                  <span className="text-red-500 font-bold">{activeItemDetails.label}</span>
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <h2 className="text-lg sm:text-xl font-black dark:text-white text-gray-900 tracking-tight">
+                    {activeItemDetails.label}
+                  </h2>
+                  {activeItemDetails.badge && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        activeItemDetails.badgeColor || 'dark:bg-[#222] bg-gray-200 dark:text-neutral-300 text-gray-700'
+                      }`}
+                    >
+                      {activeItemDetails.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs dark:text-neutral-400 text-gray-500 leading-relaxed max-w-3xl">
+                  {optionDescriptions[activeSubTab] || 'Manage store operations, analytics, drops, and customer orders.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {activeSubTab !== 'overview' && (
+                  <button
+                    onClick={() => handleSelectTab('overview')}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold dark:bg-[#1a1a1a] bg-gray-100 dark:text-neutral-300 text-gray-700 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Overview</span>
+                  </button>
+                )}
+
+                {activeSubTab === 'products' && (
+                  <button
+                    onClick={handleOpenAdd}
+                    className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add New Drop</span>
+                  </button>
+                )}
+
+                {/* Mobile sidebar trigger */}
+                <button
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="lg:hidden text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-red-500/30"
+                >
+                  <Menu className="w-3.5 h-3.5" />
+                  <span>All 22 Options</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
 
       {/* 1. OVERVIEW */}
       {activeSubTab === 'overview' && (
@@ -1569,6 +2111,9 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
           </div>
         </div>
       )}
+          </div>
+        </main>
+      </div>
 
       {/* Product Edit / Add Modal */}
       {isEditing && (

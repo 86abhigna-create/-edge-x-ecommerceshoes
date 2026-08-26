@@ -27,30 +27,30 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
-      <div className="fixed inset-0 dark:bg-[#F2F2F2] bg-black/50 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={onClose} />
       
       {/* Drawer content */}
-      <div className="relative w-80 dark:bg-[#0D0D0D] bg-white h-full shadow-2xl flex flex-col z-10 p-6 border-r dark:border-[#262626] border-gray-200 overflow-y-auto">
+      <div className="relative w-80 max-w-[85vw] dark:bg-[#0D0D0D] bg-white h-full shadow-2xl flex flex-col z-10 p-6 border-r dark:border-[#262626] border-gray-200 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-['Bebas_Neue',sans-serif] tracking-normal dark:text-[#F2F2F2] text-gray-900">EDGEX NAVIGATION</h2>
-          <button onClick={onClose} className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900">
-            <span className="material-symbols-outlined">close</span>
+          <h2 className="text-2xl font-black tracking-tight dark:text-[#F2F2F2] text-gray-900">EDGEX NAVIGATION</h2>
+          <button onClick={onClose} className="p-2 rounded-full dark:bg-[#1a1a1a] bg-gray-100 dark:text-gray-300 text-gray-700 hover:text-[#D10000]">
+            <span className="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
 
         <div className="flex flex-col gap-6 flex-grow">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest dark:text-[#868686] text-gray-500 mb-3">Main Navigation</p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <button
                 onClick={() => {
                   setActiveTab('shop');
                   onSelectCategory('All Shoes');
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">home</span> Home (Catalog)
+                <span className="material-symbols-outlined text-lg text-[#D10000]">home</span> Home (Catalog)
               </button>
               <button
                 onClick={() => {
@@ -58,9 +58,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   onSelectCategory('New Arrivals');
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">fiber_new</span> New Arrivals
+                <span className="material-symbols-outlined text-lg text-emerald-500">fiber_new</span> New Arrivals
               </button>
               <button
                 onClick={() => {
@@ -68,9 +68,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   onSelectCategory('Streetwear');
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">style</span> Streetwear
+                <span className="material-symbols-outlined text-lg text-indigo-500">style</span> Streetwear
               </button>
               <button
                 onClick={() => {
@@ -78,9 +78,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   onSelectCategory('Best Sellers');
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">trending_up</span> Best Sellers
+                <span className="material-symbols-outlined text-lg text-amber-500">trending_up</span> Best Sellers
               </button>
               <button
                 onClick={() => {
@@ -88,9 +88,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   onSelectCategory('Sale');
                   onClose();
                 }}
-                className="text-left py-2 font-bold text-[#D10000] hover:text-red-500 flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-bold text-[#D10000] dark:hover:bg-[#1a1a1a] hover:bg-gray-100 flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">local_offer</span> Sale
+                <span className="material-symbols-outlined text-lg text-[#D10000]">local_offer</span> Sale Drops
               </button>
             </div>
           </div>
@@ -101,17 +101,17 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <LanguageSelector />
             </div>
 
-            <p className="text-xs font-bold uppercase tracking-widest dark:text-[#868686] text-gray-500 mb-3">Account</p>
-            <div className="flex flex-col gap-2">
+            <p className="text-xs font-bold uppercase tracking-widest dark:text-[#868686] text-gray-500 mb-3">Account & Workspace</p>
+            <div className="flex flex-col gap-1.5">
               {userRole === 'owner' && (
                 <button
                   onClick={() => {
                     setActiveTab('owner-dashboard');
                     onClose();
                   }}
-                  className="text-left py-2 font-bold dark:text-[#F2F2F2] text-gray-900 hover:text-emerald-400 flex items-center gap-3 text-sm px-2.5 border border-emerald-900 bg-emerald-950/30"
+                  className="text-left px-3 py-2.5 rounded-lg font-bold text-emerald-400 dark:bg-emerald-950/30 bg-emerald-50 border border-emerald-800 hover:bg-emerald-900/40 flex items-center gap-3 text-sm min-h-[44px]"
                 >
-                  <span className="material-symbols-outlined text-lg">admin_panel_settings</span> Owner Dashboard
+                  <span className="material-symbols-outlined text-lg text-emerald-500">admin_panel_settings</span> Owner Dashboard
                 </button>
               )}
               <button
@@ -125,16 +125,16 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   }
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
-                <span className="material-symbols-outlined text-lg">person</span> {userRole === 'guest' ? 'Sign In / Register' : 'You'}
+                <span className="material-symbols-outlined text-lg">person</span> {userRole === 'guest' ? 'Sign In / Register' : 'Customer Dashboard'}
               </button>
               <button
                 onClick={() => {
                   setActiveTab('cart');
                   onClose();
                 }}
-                className="text-left py-2 font-semibold dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] flex items-center gap-3 text-sm"
+                className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-[#D10000] flex items-center gap-3 text-sm min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-lg">shopping_bag</span> Cart & Checkout
               </button>
@@ -144,7 +144,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     onLogout();
                     onClose();
                   }}
-                  className="text-left py-2 font-semibold dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 flex items-center gap-3 text-sm mt-4 border-t dark:border-[#262626] border-gray-200 pt-4"
+                  className="text-left px-3 py-2.5 rounded-lg font-semibold dark:text-[#868686] text-gray-500 hover:text-red-500 flex items-center gap-3 text-sm mt-4 border-t dark:border-[#262626] border-gray-200 pt-4 min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-lg">logout</span> Log Out
                 </button>

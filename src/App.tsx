@@ -801,16 +801,16 @@ export default function App() {
             </div>
 
             {/* Filter & Search Bar */}
-            <div id="featured-drops" className="w-full px-5 md:px-16 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div id="featured-drops" className="w-full px-4 sm:px-5 md:px-16 mb-8 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
               <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
                 {['All Shoes', 'New Arrivals', 'Streetwear', 'Best Sellers', 'Sale'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 py-2 text-xs font-bold uppercase tracking-wider shrink-0 transition-all border rounded-full ${
+                    className={`px-4 sm:px-5 py-2 text-xs font-bold uppercase tracking-wider shrink-0 transition-all border rounded-full ${
                       selectedCategory === cat
-                        ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 border-[#D10000]'
-                        : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black'
+                        ? 'bg-[#D10000] text-white border-[#D10000]'
+                        : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:border-black'
                     }`}
                   >
                     {cat}
@@ -818,13 +818,13 @@ export default function App() {
                 ))}
 
                 {/* Sorting & Filter options beside Sale */}
-                <div className="flex items-center gap-2 ml-2 border-l dark:border-[#262626] border-gray-200 pl-3 shrink-0 relative">
+                <div className="flex items-center gap-2 ml-1 sm:ml-2 border-l dark:border-[#262626] border-gray-200 pl-2 sm:pl-3 shrink-0 relative">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold uppercase dark:text-[#767680] text-gray-600 whitespace-nowrap">Sort:</span>
+                    <span className="text-[11px] font-bold uppercase dark:text-[#767680] text-gray-600 whitespace-nowrap hidden sm:inline">Sort:</span>
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase tracking-wider px-3.5 py-2 border dark:border-[#262626] border-gray-200 rounded-full focus:border-[#D10000] outline-none cursor-pointer shadow-xs"
+                      className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 text-xs font-bold uppercase tracking-wider px-3 py-2 border dark:border-[#262626] border-gray-200 rounded-full focus:border-[#D10000] outline-none cursor-pointer shadow-xs"
                     >
                       <option value="Recommended">Recommended</option>
                       <option value="Newest">Newest</option>
@@ -842,14 +842,14 @@ export default function App() {
                       onClick={() => setIsFilterMenuOpen(true)}
                       className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3.5 py-2 border rounded-full transition-all shadow-xs cursor-pointer ${
                         activeFilterCount > 0
-                          ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 border-[#D10000]'
-                          : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black'
+                          ? 'bg-[#D10000] text-white border-[#D10000]'
+                          : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:border-black'
                       }`}
                     >
                       <span className="material-symbols-outlined text-sm">tune</span>
                       <span>Filters</span>
                       {activeFilterCount > 0 && (
-                        <span className="bg-amber-400 dark:text-[#F2F2F2] text-gray-900 w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center ml-0.5">
+                        <span className="bg-amber-400 text-black w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center ml-0.5">
                           {activeFilterCount}
                         </span>
                       )}
@@ -859,13 +859,13 @@ export default function App() {
               </div>
 
               {/* Search Silhouettes Input */}
-              <div className="w-full md:w-80 mt-10 md:mt-16">
+              <div className="w-full md:w-80">
                 <input
                   type="text"
                   placeholder="Search silhouettes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-5 py-3 text-xs dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 focus:border-[#D10000] outline-none rounded-full shadow-xs"
+                  className="w-full px-4 py-2.5 text-xs dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 focus:border-[#D10000] outline-none rounded-full shadow-xs"
                 />
               </div>
             </div>
@@ -1353,30 +1353,9 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'customer-dashboard' && (
+        {(activeTab === 'customer-dashboard' || activeTab === 'profile' || activeTab === 'orders') && (
           <CustomerDashboardView
-            orders={orders}
-            wishlist={wishlist}
-            reviews={reviews}
-            notifications={notifications}
-            cartItems={cartItems}
-            products={products}
-            onRemoveWishlist={handleRemoveWishlist}
-            onAddReview={handleAddReview}
-            onRequestReturn={handleRequestReturn}
-            onShopClick={() => setActiveTab('shop')}
-            onAddToCart={handleAddToCart}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveCartItem={handleRemoveItem}
-            onProceedToCheckout={() => setIsCheckoutOpen(true)}
-            onLogout={handleLogout}
-            savedAddresses={savedAddresses}
-            setSavedAddresses={setSavedAddresses}
-          />
-        )}
-
-        {activeTab === 'profile' && (
-          <CustomerDashboardView
+            initialSubTab={activeTab === 'orders' ? 'orders' : activeTab === 'profile' ? 'profile' : 'overview'}
             orders={orders}
             wishlist={wishlist}
             reviews={reviews}

@@ -45,7 +45,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     const code = promoCode.trim().toUpperCase();
 
     if (code === 'EDGEX10') {
-      setActiveCoupon({ code: 'EDGEX10', type: 'flat', amount: 25 });
+      setActiveCoupon({ code: 'EDGEX10', type: 'flat', amount: 500 });
       setPromoCode('');
     } else if (code === 'STEEP10' || code === 'SAVE10') {
       setActiveCoupon({ code: code, type: 'percent', amount: 10 });
@@ -66,21 +66,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
-      <div className="fixed inset-0 dark:bg-[#F2F2F2] bg-black/60 backdrop-blur-xs transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
       {/* Slide-over cart */}
       <div className="relative w-full max-w-md dark:bg-[#0D0D0D] bg-white h-full shadow-2xl flex flex-col z-10 border-l dark:border-[#262626] border-gray-200">
-        <div className="flex justify-between items-center px-6 py-4 dark:bg-[#0D0D0D] bg-white border-b dark:border-[#262626] border-gray-200">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-4 dark:bg-[#0D0D0D] bg-white border-b dark:border-[#262626] border-gray-200">
           <div>
-            <h2 className="text-lg font-black tracking-tighter dark:text-[#F2F2F2] text-gray-900 flex items-center gap-2">
-              <span className="material-symbols-outlined text-xl">shopping_bag</span>
+            <h2 className="text-lg font-black tracking-tight dark:text-[#F2F2F2] text-gray-900 flex items-center gap-2">
+              <span className="material-symbols-outlined text-xl text-[#D10000]">shopping_bag</span>
               <span>SHOPPING BAG ({cartItems.length})</span>
             </h2>
             <p className="text-[11px] dark:text-[#868686] text-gray-500">EDGEX Footwear Drop Reservation</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full dark:bg-[#1a1a1a] bg-gray-50 dark:hover:bg-[#262626] hover:dark:bg-[#262626] bg-gray-200 flex items-center justify-center text-[#45464f] transition-colors"
+            className="w-8 h-8 rounded-full dark:bg-[#1a1a1a] bg-gray-100 dark:hover:bg-[#262626] hover:bg-gray-200 flex items-center justify-center text-gray-700 dark:text-gray-200 transition-colors"
           >
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
@@ -244,19 +244,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* Price Calculations */}
             <div className="space-y-2 text-xs pt-2 border-t dark:border-[#262626] border-gray-200">
-              <div className="flex justify-between text-[#45464f]">
+              <div className="flex justify-between dark:text-gray-300 text-gray-600">
                 <span>Items Subtotal</span>
                 <span className="font-bold dark:text-[#F2F2F2] text-gray-900">₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded">
+                <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded">
                   <span>Coupon Discount ({activeCoupon?.code})</span>
                   <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              <div className="flex justify-between text-[#45464f]">
+              <div className="flex justify-between dark:text-gray-300 text-gray-600">
                 <span>Express Air Shipping</span>
-                <span className="font-bold">{shipping === 0 ? <strong className="text-emerald-700">FREE (Orders &gt; ₹2,000)</strong> : `₹${shipping.toLocaleString('en-IN')}`}</span>
+                <span className="font-bold">{shipping === 0 ? <strong className="text-emerald-700 dark:text-emerald-400">FREE (Orders &gt; ₹2,000)</strong> : `₹${shipping.toLocaleString('en-IN')}`}</span>
               </div>
               <div className="flex justify-between text-base font-black dark:text-[#F2F2F2] text-gray-900 pt-2 border-t dark:border-[#262626] border-gray-200">
                 <span>Total Amount</span>
@@ -270,7 +270,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 onClose();
                 onProceedToCheckout();
               }}
-              className="w-full bg-[#172554] dark:text-[#F2F2F2] text-gray-900 py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#8a0000] transition-all flex items-center justify-center gap-2 shadow-md"
+              className="w-full bg-[#D10000] text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#a80000] active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-md min-h-[48px]"
             >
               <span className="material-symbols-outlined text-base">lock</span>
               <span>Proceed to Secure Checkout — ₹{grandTotal.toLocaleString('en-IN')}</span>

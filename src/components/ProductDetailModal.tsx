@@ -103,25 +103,25 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 dark:bg-[#F2F2F2] bg-black/60 backdrop-blur-xs overflow-y-auto">
-      <div className="dark:bg-[#0D0D0D] bg-white w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border dark:border-[#262626] border-gray-200 shadow-2xl relative flex flex-col my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto">
+      <div className="dark:bg-[#0D0D0D] bg-white w-full max-w-4xl max-h-[94vh] overflow-y-auto rounded-2xl border dark:border-[#262626] border-gray-200 shadow-2xl relative flex flex-col my-auto">
         
         {/* Sticky Close Header */}
-        <div className="sticky top-0 z-20 dark:bg-[#0D0D0D] bg-white/95 backdrop-blur-md border-b dark:border-[#262626] border-gray-200 px-6 py-3.5 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest dark:text-[#F2F2F2] text-gray-900">
-            <span className="material-symbols-outlined text-base">inventory_2</span>
-            <span>EDGEX Silhouette Spec Card & Variant Inventory</span>
+        <div className="sticky top-0 z-20 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#262626] border-gray-200 px-4 sm:px-6 py-3 sm:py-3.5 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest dark:text-[#F2F2F2] text-gray-900 truncate">
+            <span className="material-symbols-outlined text-base shrink-0">inventory_2</span>
+            <span className="truncate">EDGEX Silhouette Spec Card & Variant Inventory</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 hover:bg-[#D10000] dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors"
+            className="p-1.5 rounded-full dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#F2F2F2] text-gray-900 hover:bg-[#D10000] hover:text-white transition-colors shrink-0 ml-2"
           >
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
 
         {/* Modal Main Content Container */}
-        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           
           {/* LEFT COLUMN: Image Gallery & Badges (5 cols) */}
           <div className="md:col-span-5 flex flex-col gap-4">
@@ -434,12 +434,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <button
                 disabled={isOutOfStock}
                 onClick={handleAddToCartClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm ${
+                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] ${
                   isOutOfStock
-                    ? 'dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#868686] text-gray-500 cursor-not-allowed border dark:border-[#262626] border-gray-200'
+                    ? 'dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#868686] text-gray-500 cursor-not-allowed border dark:border-[#262626] border-gray-200'
                     : addedAnimation
-                    ? 'bg-emerald-600 dark:text-[#F2F2F2] text-gray-900'
-                    : 'bg-[#172554] dark:text-[#F2F2F2] text-gray-900 hover:bg-[#8a0000]'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-[#D10000] text-white hover:bg-[#a80000] active:scale-[0.99]'
                 }`}
               >
                 <span className="material-symbols-outlined text-base">
@@ -451,10 +451,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <button
                 disabled={isOutOfStock}
                 onClick={handleBuyNowClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[48px] ${
                   isOutOfStock
-                    ? 'bg-[#5c0000] dark:text-[#868686] text-gray-500 cursor-not-allowed'
-                    : 'bg-emerald-700 dark:text-[#F2F2F2] text-gray-900 hover:bg-emerald-800'
+                    ? 'bg-[#5c0000] text-gray-400 cursor-not-allowed'
+                    : 'bg-emerald-700 text-white hover:bg-emerald-800 active:scale-[0.99]'
                 }`}
               >
                 <span className="material-symbols-outlined text-base">bolt</span>
@@ -463,7 +463,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               <button
                 onClick={handleWishlistClick}
-                className="w-full py-2.5 text-xs font-bold uppercase tracking-widest dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:dark:bg-[#262626] bg-gray-200 transition-colors rounded-xl flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 text-xs font-bold uppercase tracking-widest dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:bg-gray-100 transition-colors rounded-xl flex items-center justify-center gap-1.5 min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-base text-red-600">
                   {wishlistAdded ? 'favorite' : 'favorite_border'}

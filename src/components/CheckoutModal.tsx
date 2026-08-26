@@ -1005,7 +1005,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full sm:w-1/2 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000] shadow-sm"
+                  className="w-full sm:w-1/2 bg-[#D10000] text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000] shadow-sm"
                 >
                   Return to Store Catalog
                 </button>

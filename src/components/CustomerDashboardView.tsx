@@ -1,7 +1,56 @@
 import React, { useState } from 'react';
 import { Order, WishlistItem, Review, NotificationItem, CartItem, Product, Address } from '../types';
+import {
+  LayoutDashboard,
+  Package,
+  Receipt,
+  ShoppingBag,
+  Heart,
+  Bookmark,
+  History,
+  User as UserIcon,
+  MapPin,
+  CreditCard,
+  Settings,
+  RotateCcw,
+  Banknote,
+  Star,
+  TicketPercent,
+  Bell,
+  Headphones,
+  Search,
+  Menu,
+  X,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  LogOut,
+  Sparkles,
+  Clock,
+  ArrowLeft,
+  Zap,
+} from 'lucide-react';
 
 interface CustomerDashboardViewProps {
+  initialSubTab?:
+    | 'overview'
+    | 'profile'
+    | 'orders'
+    | 'order-details'
+    | 'cart'
+    | 'wishlist'
+    | 'payments'
+    | 'addresses'
+    | 'returns'
+    | 'refunds'
+    | 'reviews'
+    | 'recently-viewed'
+    | 'saved-products'
+    | 'notifications'
+    | 'coupons'
+    | 'support'
+    | 'settings';
   orders: Order[];
   wishlist: WishlistItem[];
   reviews: Review[];
@@ -22,6 +71,7 @@ interface CustomerDashboardViewProps {
 }
 
 export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
+  initialSubTab,
   orders,
   wishlist,
   reviews,
@@ -58,7 +108,31 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
     | 'coupons'
     | 'support'
     | 'settings'
-  >('overview');
+  >(initialSubTab || 'overview');
+
+  React.useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
+
+  const [recentTabs, setRecentTabs] = useState<string[]>(['overview', 'orders', 'cart', 'wishlist']);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const handleSelectTab = (tabId: any) => {
+    setActiveSubTab(tabId);
+    setRecentTabs((prev) => {
+      const filtered = prev.filter((id) => id !== tabId);
+      return [tabId, ...filtered].slice(0, 4);
+    });
+  };
+
+  const toggleGroupCollapse = (groupName: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupName]: !prev[groupName],
+    }));
+  };
 
   // Coupon state for Cart tab
   const [cartCoupon, setCartCoupon] = useState('');
@@ -217,68 +291,543 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
     alert('Review submitted successfully.');
   };
 
-  const subCategories = [
-    { id: 'overview', label: 'Overview', icon: 'dashboard' },
-    { id: 'profile', label: 'My Profile', icon: 'person' },
-    { id: 'orders', label: `My Orders (${orders.length})`, icon: 'package_2' },
-    { id: 'order-details', label: 'Order Details', icon: 'receipt_long' },
-    { id: 'cart', label: `My Cart (${cartItems.length})`, icon: 'shopping_bag' },
-    { id: 'wishlist', label: `Wishlist (${wishlist.length})`, icon: 'favorite' },
-    { id: 'payments', label: 'Payments', icon: 'credit_card' },
-    { id: 'addresses', label: 'Addresses', icon: 'location_on' },
-    { id: 'returns', label: 'Returns', icon: 'assignment_return' },
-    { id: 'refunds', label: 'Refunds', icon: 'payments' },
-    { id: 'reviews', label: `Reviews & Ratings (${reviews.length})`, icon: 'star' },
-    { id: 'recently-viewed', label: 'Recently Viewed', icon: 'history' },
-    { id: 'saved-products', label: 'Saved Products', icon: 'bookmark' },
-    { id: 'notifications', label: `Notifications (${notifications.filter(n => !n.read).length})`, icon: 'notifications' },
-    { id: 'coupons', label: 'Offers & Coupons', icon: 'local_offer' },
-    { id: 'support', label: 'Support', icon: 'support_agent' },
-    { id: 'settings', label: 'Account Settings', icon: 'settings' },
+  const [sidebarSearch, setSidebarSearch] = useState<string>('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+
+  const customerOptionDescriptions: Record<string, string> = {
+    overview: 'Your personal account summary, active deliveries, saved sneaker wishlist, and VIP status.',
+    orders: 'Review past purchases, download invoice receipts, and check courier tracking.',
+    'order-details': 'Real-time live delivery checkpoint progress, estimated arrival, and dispatch logs.',
+    cart: 'Manage items ready for purchase, apply coupon vouchers, and proceed to secure checkout.',
+    wishlist: 'Curate your favorite sneaker silhouettes and receive instant notifications when drops release.',
+    'saved-products': 'Sneaker silhouettes bookmarked for future seasonal release drops.',
+    'recently-viewed': 'Footwear models and limited edition colorways you browsed recently.',
+    profile: 'Update your display name, email preferences, phone number, and footwear sizing preferences.',
+    addresses: 'Manage delivery destinations, default apartment/building notes, and postal codes.',
+    payments: 'Saved credit cards, Apple Pay credentials, billing addresses, and default payment method.',
+    settings: 'Security settings, password changes, SMS alerts, and marketing privacy preferences.',
+    returns: 'Initiate an easy return or exchange within 30 days of receiving your package.',
+    refunds: 'Track pending payment reversals and store credit balance status.',
+    reviews: 'Share buyer feedback, star ratings, styling photos, and sizing accuracy advice.',
+    coupons: 'Active member discounts, VIP tier vouchers, and free shipping codes.',
+    notifications: 'Drop reminders, order status updates, and exclusive invitation alerts.',
+    support: '24/7 Priority Concierge live chat, email assistance, and sizing hotline.',
+  };
+
+  interface CustomerNavItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string | number;
+    badgeColor?: string;
+  }
+
+  interface CustomerNavGroup {
+    group: string;
+    items: CustomerNavItem[];
+  }
+
+  const navigationGroups: CustomerNavGroup[] = [
+    {
+      group: 'Orders & Shopping',
+      items: [
+        { id: 'overview', label: 'Dashboard Overview', icon: LayoutDashboard },
+        { id: 'orders', label: 'My Orders', icon: Package, badge: orders.length },
+        { id: 'order-details', label: 'Order Tracking & Details', icon: Receipt },
+        { id: 'cart', label: 'Shopping Cart', icon: ShoppingBag, badge: cartItems.length },
+        { id: 'wishlist', label: 'Wishlist & Favorites', icon: Heart, badge: wishlist.length },
+        { id: 'saved-products', label: 'Saved Products', icon: Bookmark },
+        { id: 'recently-viewed', label: 'Recently Viewed', icon: History },
+      ],
+    },
+    {
+      group: 'Account & Billing',
+      items: [
+        { id: 'profile', label: 'Personal Profile', icon: UserIcon },
+        { id: 'addresses', label: 'Shipping Addresses', icon: MapPin, badge: savedAddresses.length },
+        { id: 'payments', label: 'Payment Methods', icon: CreditCard },
+        { id: 'settings', label: 'Account Settings', icon: Settings },
+      ],
+    },
+    {
+      group: 'Services & Rewards',
+      items: [
+        { id: 'returns', label: 'Returns & Exchanges', icon: RotateCcw },
+        { id: 'refunds', label: 'Refunds & Payouts', icon: Banknote },
+        { id: 'reviews', label: 'My Reviews & Ratings', icon: Star, badge: reviews.length },
+        { id: 'coupons', label: 'Offers & Coupons', icon: TicketPercent, badge: '3 Active' },
+        {
+          id: 'notifications',
+          label: 'Notifications',
+          icon: Bell,
+          badge: notifications.filter((n) => !n.read).length || undefined,
+          badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
+        },
+        {
+          id: 'support',
+          label: 'Concierge Support',
+          icon: Headphones,
+          badge: 'Live',
+          badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+        },
+      ],
+    },
   ];
 
-  return (
-    <div className="w-full max-w-7xl mx-auto px-5 md:px-16 py-8 pb-24">
-      {/* Header Banner */}
-      <div className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 p-6 md:p-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-[#b7c4fd]">Your Space & Portal</span>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1">Alex Vance</h1>
-          <p className="text-xs text-[#b7c4fd] mt-1">Black Circle Tier • Member ID: EX-99421 • Early Access Active</p>
+  // Flattened for search
+  const allNavItems: CustomerNavItem[] = navigationGroups.flatMap((g) => g.items);
+  const filteredGroups: CustomerNavGroup[] = navigationGroups
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((item: CustomerNavItem) =>
+        item.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        item.id.toLowerCase().includes(sidebarSearch.toLowerCase())
+      ),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const activeItemDetails: CustomerNavItem = allNavItems.find((item) => item.id === activeSubTab) || allNavItems[0];
+  const activeGroup = navigationGroups.find((g) => g.items.some((item) => item.id === activeSubTab));
+
+  const renderSidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Sidebar Header & Search */}
+      <div className="p-4 border-b dark:border-[#262626] border-gray-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white font-black text-xs font-['Bebas_Neue',sans-serif]">
+              EX
+            </div>
+            <div>
+              <p className="text-xs font-bold dark:text-white text-gray-900 leading-none">Member Console</p>
+              <p className="text-[10px] dark:text-neutral-400 text-gray-500 mt-0.5">17 Account Services</p>
+            </div>
+          </div>
+          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded">
+            VIP Tier
+          </span>
         </div>
-        <div className="flex gap-2">
+
+        {/* Real-time search filter inside sidebar */}
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            value={sidebarSearch}
+            onChange={(e) => setSidebarSearch(e.target.value)}
+            placeholder="Search all 17 services..."
+            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#2A2A2A] border-gray-200 dark:text-white text-gray-900 placeholder:text-neutral-500 focus:outline-none focus:border-red-500 transition-colors"
+          />
+          {sidebarSearch && (
+            <button
+              onClick={() => setSidebarSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 text-xs font-bold"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Recently visited pills */}
+        {recentTabs.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1 text-[10px] dark:text-neutral-400 text-gray-500 font-semibold mb-1">
+              <Clock className="w-3 h-3 text-neutral-400" />
+              <span>Recent Tabs</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {recentTabs.map((tabId) => {
+                const tab = allNavItems.find((n) => n.id === tabId);
+                if (!tab) return null;
+                const isActive = activeSubTab === tabId;
+                return (
+                  <button
+                    key={tabId}
+                    onClick={() => {
+                      handleSelectTab(tabId);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className={`px-2 py-0.5 text-[10px] rounded-md transition-colors cursor-pointer truncate max-w-[110px] ${
+                      isActive
+                        ? 'bg-red-600 text-white font-bold'
+                        : 'dark:bg-[#1f1f1f] bg-gray-100 dark:text-neutral-300 text-gray-700 hover:bg-red-500/10 hover:text-red-500'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Groups with Collapsible Accordions */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+        {filteredGroups.length === 0 ? (
+          <div className="py-8 text-center text-xs dark:text-neutral-500 text-gray-400">
+            No matching services found.
+          </div>
+        ) : (
+          filteredGroups.map((grp) => {
+            const isCollapsed = !sidebarSearch && !!collapsedGroups[grp.group];
+            return (
+              <div key={grp.group} className="space-y-1">
+                <button
+                  onClick={() => toggleGroupCollapse(grp.group)}
+                  className="w-full flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider dark:text-neutral-400 text-gray-500 px-3 py-1.5 rounded-lg dark:hover:bg-[#1a1a1a] hover:bg-gray-100 transition-colors group cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>{grp.group}</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full dark:bg-[#222] bg-gray-200 text-neutral-400">
+                      {grp.items.length}
+                    </span>
+                  </span>
+                  {isCollapsed ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-300" />
+                  ) : (
+                    <ChevronUp className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-300" />
+                  )}
+                </button>
+
+                {!isCollapsed && (
+                  <div className="space-y-0.5 pt-0.5">
+                    {grp.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeSubTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            handleSelectTab(item.id as any);
+                            setIsMobileSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
+                            isActive
+                              ? 'bg-red-600 text-white font-bold shadow-md shadow-red-600/20'
+                              : 'dark:text-neutral-300 text-gray-700 dark:hover:bg-[#1a1a1a] hover:bg-gray-100 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Icon
+                              className={`w-4 h-4 shrink-0 transition-colors ${
+                                isActive ? 'text-white' : 'dark:text-neutral-400 text-gray-500 group-hover:text-red-500'
+                              }`}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+
+                          {item.badge !== undefined && (
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : item.badgeColor ||
+                                    'dark:bg-[#222] bg-gray-200 dark:text-neutral-300 text-gray-700'
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Sidebar Footer */}
+      <div className="p-3 border-t dark:border-[#262626] border-gray-200 dark:bg-[#141414] bg-gray-50/50 rounded-b-2xl">
+        <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
+          <div className="w-7 h-7 rounded-full bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 text-xs font-black">
+            AV
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">Alex Vance</p>
+            <p className="text-[10px] dark:text-neutral-500 text-gray-400 truncate">alex.vance@gmail.com</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 pt-1">
           <button
             onClick={onShopClick}
-            className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] transition-colors"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 text-[10px] font-bold dark:bg-[#222] bg-white border dark:border-[#333] border-gray-200 dark:text-neutral-300 text-gray-700 rounded-lg hover:border-red-500 transition-colors cursor-pointer"
           >
-            Explore Drop Catalog →
+            <span>Explore Drops</span>
+            <ExternalLink className="w-2.5 h-2.5" />
           </button>
           <button
             onClick={onLogout}
-            className="bg-transparent border dark:border-[#F2F2F2] border-black dark:text-[#F2F2F2] text-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#b7c4fd] hover:dark:text-[#0D0D0D] text-white transition-colors"
+            className="flex items-center justify-center gap-1 py-1.5 px-2 text-[10px] font-bold dark:bg-red-950/30 bg-red-50 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
           >
-            Log Out
+            <LogOut className="w-2.5 h-2.5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full pb-20">
+      {/* Top Banner */}
+      <div className="bg-gradient-to-r from-[#B00000] via-[#D10000] to-[#800000] text-white p-5 sm:p-6 mb-6 rounded-2xl shadow-xl mx-3 sm:mx-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="lg:hidden p-2.5 bg-black/40 hover:bg-black/60 text-white rounded-xl border border-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            aria-label="Toggle navigation sidebar"
+          >
+            {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-black/40 px-2.5 py-0.5 rounded text-white border border-white/10">
+                Your Member Space
+              </span>
+              <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                Black Circle VIP • Member #EX-99421
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mt-1 font-['Bebas_Neue',sans-serif]">
+              Alex Vance
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+          <button
+            onClick={onShopClick}
+            className="bg-black hover:bg-neutral-900 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
+          >
+            <span>Explore Drops</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onLogout}
+            className="bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
 
-      {/* Sub Tabs Navigation grid / scrollable */}
-      <div className="flex gap-2 overflow-x-auto border-b dark:border-[#262626] border-gray-200 mb-8 pb-3 no-scrollbar">
-        {subCategories.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveSubTab(tab.id as any)}
-            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider shrink-0 transition-all flex items-center gap-2 ${
-              activeSubTab === tab.id
-                ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900'
-                : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:dark:border-[#F2F2F2] border-black'
-            }`}
-          >
-            <span className="material-symbols-outlined text-sm">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Main Layout Container: Sidebar + Content */}
+      <div className="flex flex-col lg:flex-row gap-6 px-3 sm:px-6">
+        {/* DESKTOP SIDEBAR */}
+        <aside className="hidden lg:block w-72 shrink-0">
+          <div className="sticky top-20 dark:bg-[#121212] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-6.5rem)] flex flex-col">
+            {renderSidebarContent()}
+          </div>
+        </aside>
+
+        {/* MOBILE SIDEBAR MODAL / DRAWER */}
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+            {/* Drawer */}
+            <div className="relative w-4/5 max-w-xs dark:bg-[#121212] bg-white h-full shadow-2xl z-10 flex flex-col overflow-hidden">
+              <div className="p-4 border-b dark:border-[#262626] border-gray-200 flex items-center justify-between">
+                <span className="font-bold text-sm dark:text-white text-gray-900 uppercase tracking-wider">
+                  Member Services
+                </span>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="p-1.5 rounded-lg dark:hover:bg-neutral-800 hover:bg-gray-100 text-neutral-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                {renderSidebarContent()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* RIGHT MAIN CONTENT AREA */}
+        <main className="flex-1 min-w-0">
+          {/* Quick Actions Shortcuts Bar */}
+          <div className="mb-4 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex items-center gap-1.5 min-w-max">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider dark:text-neutral-500 text-gray-400 mr-1 flex items-center gap-1">
+                <Zap className="w-3 h-3 text-amber-500" />
+                Quick Jump:
+              </span>
+              <button
+                onClick={() => handleSelectTab('overview')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'overview'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Overview</span>
+              </button>
+              <button
+                onClick={() => handleSelectTab('orders')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'orders'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" />
+                <span>My Orders</span>
+                {orders.length > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 bg-red-500/20 text-red-400 rounded-full font-black">
+                    {orders.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('cart')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'cart'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Cart</span>
+                {cartItems.length > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 bg-red-500/20 text-red-400 rounded-full font-black">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('wishlist')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'wishlist'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Heart className="w-3.5 h-3.5" />
+                <span>Wishlist</span>
+                {wishlist.length > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-400 rounded-full font-black">
+                    {wishlist.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('addresses')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'addresses'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Addresses</span>
+                {savedAddresses.length > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 dark:bg-neutral-800 bg-gray-200 text-neutral-400 rounded-full font-bold">
+                    {savedAddresses.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => handleSelectTab('coupons')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'coupons'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <TicketPercent className="w-3.5 h-3.5" />
+                <span>Coupons</span>
+              </button>
+              <button
+                onClick={() => handleSelectTab('support')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeSubTab === 'support'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'dark:bg-[#151515] bg-white border dark:border-[#262626] border-gray-200 dark:text-neutral-300 text-gray-700 hover:border-red-500'
+                }`}
+              >
+                <Headphones className="w-3.5 h-3.5" />
+                <span>Support</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Contextual Section Header Banner */}
+          <div className="dark:bg-[#121212] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 text-xs flex-wrap">
+                  <span className="dark:text-neutral-500 text-gray-400">Customer Space</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />
+                  <span className="dark:text-neutral-400 text-gray-600 font-medium">{activeGroup?.group}</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />
+                  <span className="text-red-500 font-bold">{activeItemDetails.label}</span>
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <h2 className="text-lg sm:text-xl font-black dark:text-white text-gray-900 tracking-tight">
+                    {activeItemDetails.label}
+                  </h2>
+                  {activeItemDetails.badge && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        activeItemDetails.badgeColor || 'dark:bg-[#222] bg-gray-200 dark:text-neutral-300 text-gray-700'
+                      }`}
+                    >
+                      {activeItemDetails.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs dark:text-neutral-400 text-gray-500 leading-relaxed max-w-3xl">
+                  {customerOptionDescriptions[activeSubTab] || 'Access your personalized footwear services, order management, and rewards.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {activeSubTab !== 'overview' && (
+                  <button
+                    onClick={() => handleSelectTab('overview')}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold dark:bg-[#1a1a1a] bg-gray-100 dark:text-neutral-300 text-gray-700 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Overview</span>
+                  </button>
+                )}
+
+                {(activeSubTab === 'cart' || activeSubTab === 'wishlist') && (
+                  <button
+                    onClick={onShopClick}
+                    className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-colors cursor-pointer"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>Shop Footwear</span>
+                  </button>
+                )}
+
+                {/* Mobile sidebar trigger */}
+                <button
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="lg:hidden text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-red-500/30"
+                >
+                  <Menu className="w-3.5 h-3.5" />
+                  <span>All 17 Services</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
 
       {/* 1. OVERVIEW */}
       {activeSubTab === 'overview' && (
@@ -1430,6 +1979,9 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
           </div>
         </div>
       )}
+          </div>
+        </main>
+      </div>
 
       {/* Add/Edit Address Modal */}
       {showAddressModal && (
