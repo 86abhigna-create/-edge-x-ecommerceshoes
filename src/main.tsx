@@ -4,7 +4,7 @@ import { BrowserRouter, type FutureConfig } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { QueryProvider } from './hooks/useApi';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import App from './App.tsx';
+import App from './App';
 import './index.css';
 
 const future: FutureConfig = {
