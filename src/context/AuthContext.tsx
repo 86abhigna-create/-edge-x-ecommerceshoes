@@ -3,6 +3,13 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { User as AppUser } from '../types';
 
+export interface GoogleAccountDetails {
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+  role?: 'customer' | 'owner';
+}
+
 interface AuthContextType {
   user: User | null;
   appUser: AppUser | null;
@@ -10,7 +17,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (selectedAccount?: GoogleAccountDetails) => Promise<{ role: 'customer' | 'owner'; email: string; name: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
@@ -18,6 +25,9 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const OWNER_EMAIL = 'neravatiabhigna@gmail.com';
+export const OWNER_PASSWORD = 'Bhuvi@2006';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -90,15 +100,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createLocalUser = (email: string, fullName?: string): User => {
-    const isOwner = email.toLowerCase() === 'admin' || email.toLowerCase().includes('admin');
+    const isOwner = email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase();
     return {
-      id: `user-${Date.now()}`,
+      id: isOwner ? 'owner-neravatiabhigna' : `user-${Date.now()}`,
       email: email.includes('@') ? email : `${email}@edgex.com`,
       aud: 'authenticated',
       role: 'authenticated',
       created_at: new Date().toISOString(),
       user_metadata: {
-        full_name: fullName || (email.includes('@') ? email.split('@')[0] : email),
+        full_name: isOwner ? 'Neravati Abhigna (Owner)' : (fullName || (email.includes('@') ? email.split('@')[0] : email)),
         avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         role: isOwner ? 'owner' : 'customer',
       }
@@ -118,8 +128,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isOwner = cleanEmail === OWNER_EMAIL.toLowerCase();
+
+    if (isOwner && password !== OWNER_PASSWORD) {
+      throw new Error(`Owner account registration requires authorized master credentials.`);
+    }
+
     if (!isSupabaseConfigured) {
-      const localUser = createLocalUser(email, fullName);
+      const localUser = createLocalUser(email, isOwner ? 'Neravati Abhigna' : fullName);
       setLocalUserSession(localUser);
       return;
     }
@@ -128,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: { data: { full_name: isOwner ? 'Neravati Abhigna (Owner)' : fullName, role: isOwner ? 'owner' : 'customer' } },
       });
       if (error) {
         throw error;
@@ -140,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       const msg = err?.message?.toLowerCase() || '';
       if (msg.includes('fetch') || msg.includes('network') || msg.includes('failed') || msg.includes('load')) {
-        const localUser = createLocalUser(email, fullName);
+        const localUser = createLocalUser(email, isOwner ? 'Neravati Abhigna' : fullName);
         setLocalUserSession(localUser);
         return;
       }
@@ -149,6 +166,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const isOwner = cleanEmail === OWNER_EMAIL.toLowerCase();
+
+    if (isOwner) {
+      if (password !== OWNER_PASSWORD) {
+        throw new Error('Invalid password for Owner account (neravatiabhigna@gmail.com). Access denied.');
+      }
+      const localUser = createLocalUser(cleanEmail, 'Neravati Abhigna');
+      setLocalUserSession(localUser);
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       const localUser = createLocalUser(email);
       setLocalUserSession(localUser);
@@ -182,22 +211,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (selectedAccount?: GoogleAccountDetails): Promise<{ role: 'customer' | 'owner'; email: string; name: string }> => {
+    const email = selectedAccount?.email?.trim() || 'neravatiabhigna29@gmail.com';
+    const isOwner = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+    const role: 'customer' | 'owner' = isOwner ? 'owner' : (selectedAccount?.role || 'customer');
+    const defaultName = isOwner ? 'Neravati Abhigna (Owner)' : (email.includes('@') ? email.split('@')[0] : 'Google User');
+    const name = selectedAccount?.name || defaultName;
+    const avatarUrl = selectedAccount?.avatarUrl || (isOwner 
+      ? 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80'
+      : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80');
+
     const googleUser = {
-      id: `google-user-${Date.now()}`,
-      email: 'alex.vance@gmail.com',
+      id: isOwner ? 'owner-neravatiabhigna' : `google-user-${Date.now()}`,
+      email: email,
       aud: 'authenticated',
       role: 'authenticated',
       created_at: new Date().toISOString(),
       user_metadata: {
-        full_name: 'Alex Vance',
-        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        full_name: name,
+        avatar_url: avatarUrl,
         provider: 'google',
-        role: 'customer',
+        role: role,
       }
     } as unknown as User;
 
     setLocalUserSession(googleUser);
+    return { role, email, name };
   };
 
   const signOut = async () => {

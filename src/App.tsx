@@ -100,8 +100,11 @@ export default function App() {
   
   // Authentication & Authorization state - always starts on login page (guest)
   const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('guest');
+  const [hasStartedBrowsing, setHasStartedBrowsing] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [ownerPinInput, setOwnerPinInput] = useState<string>('');
+  const [loginPromptMsg, setLoginPromptMsg] = useState<string>('');
+  const [ownerEmailInput, setOwnerEmailInput] = useState<string>('');
+  const [ownerPasswordInput, setOwnerPasswordInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
   
   // Address state - lifted to App level
@@ -305,6 +308,11 @@ export default function App() {
   };
 
   const handleAddToCart = (product: Product, size: string, quantity: number, color?: string) => {
+    if (userRole === 'guest') {
+      setLoginPromptMsg('Please sign in to add items to your shopping bag and book your pair.');
+      setIsAuthModalOpen(true);
+      return;
+    }
     const chosenColor = color || product.colorway;
     setCartItems((prev) => {
       const existingIndex = prev.findIndex(
@@ -344,6 +352,11 @@ export default function App() {
   };
 
   const handleAddToWishlist = (product: Product) => {
+    if (userRole === 'guest') {
+      setLoginPromptMsg('Please sign in to save items to your wishlist.');
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (wishlist.some((w) => w.product.id === product.id)) return;
     setWishlist((prev) => [
       {
@@ -615,18 +628,21 @@ export default function App() {
       // ignore
     }
     setUserRole('guest');
+    setHasStartedBrowsing(false);
     setActiveTab('shop');
   };
 
-  if (userRole === 'guest') {
+  if (!hasStartedBrowsing && userRole === 'guest') {
     return (
       <AuthView 
         onLogin={(role) => {
           setUserRole(role);
-          setActiveTab('shop');
+          setHasStartedBrowsing(true);
+          setActiveTab(role === 'owner' ? 'owner-dashboard' : 'shop');
         }}
         onContinueAsGuest={() => {
-          setUserRole('customer');
+          setUserRole('guest');
+          setHasStartedBrowsing(true);
           setActiveTab('shop');
         }}
       />
@@ -651,7 +667,26 @@ export default function App() {
         toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
 
-      {/* Main Content Area */}
+      {/* Guest Mode Notice Banner */}
+      {userRole === 'guest' && (
+        <div className="bg-neutral-900 border-b border-neutral-800 text-neutral-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span>
+              <strong className="text-white">Guest Catalog Access:</strong> You can view all high-res product photos, colorways, and specs. Sign in to book & reserve your pair.
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setLoginPromptMsg('Sign in with your email to book sneakers and unlock bag checkout.');
+              setIsAuthModalOpen(true);
+            }}
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
+          >
+            Sign In with Email
+          </button>
+        </div>
+      )}
       <main className="flex-grow flex flex-col w-full max-w-[1440px] mx-auto">
         {activeTab === 'shop' && (
           <>
@@ -1125,28 +1160,38 @@ export default function App() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (userRole === 'guest') {
+                                setLoginPromptMsg('Please sign in with your email to add items to your shopping bag and book your pair.');
+                                setIsAuthModalOpen(true);
+                                return;
+                              }
                               handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
                               setIsCartOpen(true);
                             }}
-                            className="w-full bg-[#D10000] hover:bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs"
-                            title="Add silhouette directly to your shopping bag"
+                            className="w-full bg-[#D10000] hover:bg-[#a80000] text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            title={userRole === 'guest' ? 'Sign in to add to bag' : 'Add silhouette directly to your shopping bag'}
                           >
-                            <span className="material-symbols-outlined text-xs">shopping_bag</span>
-                            <span>Add to Bag</span>
+                            <span className="material-symbols-outlined text-xs">{userRole === 'guest' ? 'login' : 'shopping_bag'}</span>
+                            <span>{userRole === 'guest' ? 'Sign In to Book' : 'Add to Bag'}</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (userRole === 'guest') {
+                                setLoginPromptMsg('Please sign in with your email to book and buy this silhouette.');
+                                setIsAuthModalOpen(true);
+                                return;
+                              }
                               handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
                               setIsCheckoutOpen(true);
                             }}
-                            className="w-full bg-emerald-700 hover:bg-emerald-800 dark:text-[#F2F2F2] text-gray-900 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs"
-                            title="Buy now and proceed directly to instant checkout"
+                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                            title={userRole === 'guest' ? 'Sign in to buy now' : 'Buy now and proceed directly to instant checkout'}
                           >
-                            <span className="material-symbols-outlined text-xs">bolt</span>
-                            <span>Buy Now</span>
+                            <span className="material-symbols-outlined text-xs">{userRole === 'guest' ? 'login' : 'bolt'}</span>
+                            <span>{userRole === 'guest' ? 'Sign In to Buy' : 'Buy Now'}</span>
                           </button>
                         </div>
                       </div>
@@ -1484,83 +1529,23 @@ export default function App() {
       {/* Mobile Bottom Navigation */}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} cartCount={cartCount} userRole={userRole} onOpenAuthModal={() => setIsAuthModalOpen(true)} />
 
-      {/* Authentication / Authorization Modal */}
+      {/* Authentication / Authorization Modal Dialog */}
       {isAuthModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 dark:bg-[#F2F2F2] bg-black/60 backdrop-blur-xs">
-          <div className="dark:bg-[#0D0D0D] bg-white w-full max-w-md p-8 border dark:border-[#262626] border-gray-200 space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-black dark:text-[#F2F2F2] text-gray-900">EDGEX Identity & Authorization</h3>
-              <button onClick={() => setIsAuthModalOpen(false)} className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <p className="dark:text-[#868686] text-gray-500">
-                Select your session role. Normal customer permissions grant access to orders, wishlist, reviews, and purchases. Owner role grants secure catalog and order fulfillment management.
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    setUserRole('customer');
-                    setIsAuthModalOpen(false);
-                    setActiveTab('customer-dashboard');
-                  }}
-                  className={`p-4 border text-left flex flex-col gap-1 transition-all rounded-xl ${
-                    userRole === 'customer' ? 'border-[#D10000] dark:bg-[#1a1a1a] bg-gray-50 shadow-xs' : 'dark:border-[#262626] border-gray-200'
-                  }`}
-                >
-                  <span className="font-bold dark:text-[#F2F2F2] text-gray-900 text-sm">You</span>
-                  <span className="dark:text-[#767680] text-gray-600">Alex Vance (Member)</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setUserRole('owner');
-                    setIsAuthModalOpen(false);
-                    setActiveTab('owner-dashboard');
-                  }}
-                  className={`p-4 border text-left flex flex-col gap-1 transition-all rounded-xl ${
-                    userRole === 'owner' ? 'dark:border-[#F2F2F2] border-black dark:bg-[#1a1a1a] bg-gray-50 shadow-xs' : 'dark:border-[#262626] border-gray-200'
-                  }`}
-                >
-                  <span className="font-bold text-emerald-800 text-sm">Platform Owner</span>
-                  <span className="dark:text-[#767680] text-gray-600">EDGEX Admin</span>
-                </button>
-              </div>
-
-              {userRole !== 'owner' && (
-                <div className="pt-4 border-t dark:border-[#262626] border-gray-200 space-y-2">
-                  <label className="block font-bold uppercase dark:text-[#F2F2F2] text-gray-900">Owner Portal PIN Access</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="password"
-                      placeholder="Enter Owner PIN (e.g. 2026)"
-                      value={ownerPinInput}
-                      onChange={(e) => setOwnerPinInput(e.target.value)}
-                      className="w-full p-2.5 border dark:border-[#262626] border-gray-200 outline-none"
-                    />
-                    <button
-                      onClick={() => {
-                        if (ownerPinInput === '2026' || ownerPinInput === 'edgex') {
-                          setUserRole('owner');
-                          setAuthError('');
-                          setIsAuthModalOpen(false);
-                          setActiveTab('owner-dashboard');
-                        } else {
-                          setAuthError('Invalid Owner PIN. (Hint: use 2026)');
-                        }
-                      }}
-                      className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-4 font-bold uppercase tracking-wider shrink-0 hover:bg-[#D10000]"
-                    >
-                      Authenticate
-                    </button>
-                  </div>
-                  {authError && <p className="text-red-600 font-bold">{authError}</p>}
-                </div>
-              )}
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md max-h-[95vh] overflow-y-auto rounded-2xl">
+            <AuthView
+              customPrompt={loginPromptMsg}
+              onClose={() => {
+                setIsAuthModalOpen(false);
+                setLoginPromptMsg('');
+              }}
+              onLogin={(role) => {
+                setUserRole(role);
+                setIsAuthModalOpen(false);
+                setLoginPromptMsg('');
+                setActiveTab(role === 'owner' ? 'owner-dashboard' : 'shop');
+              }}
+            />
           </div>
         </div>
       )}
@@ -1571,7 +1556,10 @@ export default function App() {
         onClose={() => setIsMenuOpen(false)}
         setActiveTab={setActiveTab}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        onOpenAuthModal={() => {
+          setLoginPromptMsg('');
+          setIsAuthModalOpen(true);
+        }}
         userRole={userRole}
         onLogout={handleLogout}
       />
@@ -1583,6 +1571,12 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onProceedToCheckout={() => {
+          if (userRole === 'guest') {
+            setLoginPromptMsg('Please sign in with your email to proceed to checkout and complete your order.');
+            setIsCartOpen(false);
+            setIsAuthModalOpen(true);
+            return;
+          }
           setIsCartOpen(false);
           setIsCheckoutOpen(true);
         }}
@@ -1593,10 +1587,20 @@ export default function App() {
         onClose={() => setSelectedProduct(null)}
         onAddToCart={handleAddToCart}
         onAddToWishlist={handleAddToWishlist}
-        onBuyNow={(prod, size, qty) => {
-          handleAddToCart(prod, size, qty);
+        onBuyNow={(prod, size, qty, color) => {
+          if (userRole === 'guest') {
+            setLoginPromptMsg('Please sign in with your email to book and purchase this silhouette.');
+            setIsAuthModalOpen(true);
+            return;
+          }
+          handleAddToCart(prod, size, qty, color);
           setSelectedProduct(null);
           setIsCheckoutOpen(true);
+        }}
+        userRole={userRole}
+        onRequireLogin={() => {
+          setLoginPromptMsg('Please sign in with your email to book this silhouette and reserve your pair.');
+          setIsAuthModalOpen(true);
         }}
       />
 

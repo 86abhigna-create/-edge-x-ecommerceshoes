@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { useAuth, GoogleAccountDetails } from '../context/AuthContext';
+import { Mail, Lock, User as UserIcon, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { GoogleAccountChooserModal } from './GoogleAccountChooserModal';
 
 interface AuthViewProps {
   onLogin: (role: 'customer' | 'owner') => void;
   onContinueAsGuest?: () => void;
+  onClose?: () => void;
+  customPrompt?: string;
 }
 
-export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }) => {
+export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest, onClose, customPrompt }) => {
   const { signUp, signIn, signInWithGoogle } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,6 +20,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
   const [successMsg, setSuccessMsg] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const validateEmail = (emailStr: string) => {
@@ -24,17 +28,20 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
     return re.test(emailStr.trim());
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleSelectGoogleAccount = async (selectedAccount: GoogleAccountDetails) => {
     setError('');
     setSuccessMsg('');
     setGoogleLoading(true);
     try {
-      await signInWithGoogle();
-      onLogin('customer');
+      const result = await signInWithGoogle(selectedAccount);
+      setSuccessMsg(`Authenticated as ${result.name} (${result.email})`);
+      setTimeout(() => {
+        setIsGoogleModalOpen(false);
+        onLogin(result.role);
+      }, 500);
     } catch (err: any) {
       console.error('Google sign in error:', err);
       setError(err?.message || 'Google sign in failed. Please try again.');
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -45,6 +52,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
     setSuccessMsg('');
 
     const trimmedEmail = email.trim();
+    const isOwnerEmail = trimmedEmail.toLowerCase() === 'neravatiabhigna@gmail.com';
 
     if (!trimmedEmail) {
       setError('Please enter your email address');
@@ -67,20 +75,37 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
       return;
     }
 
+    // Strict Owner Credential Validation
+    if (isOwnerEmail && password !== 'Bhuvi@2006') {
+      setError('Invalid password for Owner account (neravatiabhigna@gmail.com). Access denied.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignUp) {
-        await signUp(trimmedEmail, password, fullName.trim());
-        setSuccessMsg('Account created successfully! Logging you in...');
-        setTimeout(() => {
-          onLogin('customer');
-        }, 500);
+        if (isOwnerEmail) {
+          await signUp(trimmedEmail, password, fullName.trim() || 'Neravati Abhigna');
+          setSuccessMsg('Owner account created successfully! Redirecting to Owner Dashboard...');
+          setTimeout(() => {
+            onLogin('owner');
+          }, 400);
+        } else {
+          await signUp(trimmedEmail, password, fullName.trim());
+          setSuccessMsg('Account created successfully! Logging you in...');
+          setTimeout(() => {
+            onLogin('customer');
+          }, 400);
+        }
       } else {
         await signIn(trimmedEmail, password);
-        // Determine role based on email or credentials
-        if (trimmedEmail.toLowerCase().includes('admin') || password === '2026' || trimmedEmail.toLowerCase().includes('owner')) {
-          onLogin('owner');
+        // Determine role: Only neravatiabhigna@gmail.com with Bhuvi@2006 gets Owner access
+        if (isOwnerEmail && password === 'Bhuvi@2006') {
+          setSuccessMsg('Owner authenticated! Opening Owner Dashboard...');
+          setTimeout(() => {
+            onLogin('owner');
+          }, 400);
         } else {
           onLogin('customer');
         }
@@ -93,19 +118,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
     }
   };
 
-  // Quick helper for test demo login
-  const handleQuickDemo = (type: 'customer' | 'owner') => {
-    if (type === 'owner') {
-      setEmail('admin@edgex.com');
-      setPassword('2026');
-    } else {
-      setEmail('alex.vance@gmail.com');
-      setPassword('edgex2026');
-    }
-    setError('');
-    setSuccessMsg('');
-  };
-
   return (
     <div className="min-h-screen dark:bg-[#0D0D0D] bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 font-['Inter',sans-serif] relative overflow-hidden">
       {/* Dynamic Background Glow Elements */}
@@ -113,6 +125,16 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md bg-[#161616] border border-[#2A2A2A] p-6 sm:p-8 rounded-2xl shadow-2xl relative z-10 text-neutral-100">
+        {onClose && (
+          <button
+            onClick={onClose}
+            type="button"
+            className="absolute top-4 right-4 p-2 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <span className="material-symbols-outlined text-lg leading-none">close</span>
+          </button>
+        )}
         
         {/* Brand Header */}
         <div className="text-center mb-6">
@@ -127,9 +149,17 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
           <h2 className="text-xl font-bold text-white tracking-tight">
             {isSignUp ? 'Create Your Account' : 'Sign In to Your Account'}
           </h2>
-          <p className="text-neutral-400 text-xs sm:text-sm mt-1">
-            {isSignUp ? 'Join the future of high-performance streetwear footwear.' : 'Welcome back to the EDGEX luxury sneaker sanctuary.'}
-          </p>
+          {customPrompt ? (
+            <div className="mt-2.5 px-3 py-2 bg-red-950/40 border border-red-900/60 rounded-xl">
+              <p className="text-red-400 text-xs font-semibold">
+                {customPrompt}
+              </p>
+            </div>
+          ) : (
+            <p className="text-neutral-400 text-xs sm:text-sm mt-1">
+              {isSignUp ? 'Join the future of high-performance streetwear footwear.' : 'Welcome back to the EDGEX luxury sneaker sanctuary.'}
+            </p>
+          )}
         </div>
 
         {/* Status Alerts */}
@@ -150,7 +180,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
         {/* Google Sign-in Button */}
         <button
           type="button"
-          onClick={handleGoogleSignIn}
+          onClick={() => setIsGoogleModalOpen(true)}
           disabled={googleLoading || loading}
           className="w-full bg-white hover:bg-neutral-100 text-neutral-900 font-semibold text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.99]"
         >
@@ -241,7 +271,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
                 <button
                   type="button"
                   onClick={() => alert('Password reset link sent to your registered email address!')}
-                  className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                  className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors cursor-pointer"
                 >
                   Forgot Password?
                 </button>
@@ -300,48 +330,33 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest }
               setError('');
               setSuccessMsg('');
             }}
-            className="text-white font-bold ml-1.5 hover:text-red-400 transition-colors underline-offset-4 hover:underline"
+            className="text-white font-bold ml-1.5 hover:text-red-400 transition-colors underline-offset-4 hover:underline cursor-pointer"
           >
             {isSignUp ? 'Sign In' : 'Create One'}
           </button>
         </div>
 
-        {/* Quick Demo Credentials & Guest Access */}
-        <div className="mt-6 pt-5 border-t border-neutral-800/80 flex flex-col gap-2.5">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400">
-            <span className="font-semibold uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-neutral-400" />
-              Quick Fill:
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('customer')}
-                className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded text-[10px] font-medium transition-colors cursor-pointer"
-              >
-                Customer Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('owner')}
-                className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 rounded text-[10px] font-medium transition-colors cursor-pointer"
-              >
-                Owner/Admin Demo
-              </button>
-            </div>
-          </div>
-
-          {onContinueAsGuest && (
+        {/* Guest Access Option */}
+        {onContinueAsGuest && (
+          <div className="mt-6 pt-4 border-t border-neutral-800/80 text-center">
             <button
               type="button"
               onClick={onContinueAsGuest}
-              className="text-center text-xs text-neutral-500 hover:text-neutral-300 transition-colors py-1 cursor-pointer"
+              className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors py-1 cursor-pointer"
             >
               Continue exploring as guest →
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* Google Account Chooser Modal */}
+      <GoogleAccountChooserModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSelectAccount={handleSelectGoogleAccount}
+        isLoading={googleLoading}
+      />
     </div>
   );
 };

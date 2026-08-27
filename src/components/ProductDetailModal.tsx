@@ -7,6 +7,8 @@ interface ProductDetailModalProps {
   onAddToCart: (product: Product, size: string, quantity: number, color?: string) => void;
   onAddToWishlist: (product: Product) => void;
   onBuyNow?: (product: Product, size: string, quantity: number, color?: string) => void;
+  userRole?: 'customer' | 'owner' | 'guest';
+  onRequireLogin?: () => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -15,6 +17,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onAddToCart,
   onAddToWishlist,
   onBuyNow,
+  userRole = 'customer',
+  onRequireLogin,
 }) => {
   const availableColors = product?.colors && product.colors.length > 0 ? product.colors : [product?.colorway || 'Standard'];
   const availableSizes = product?.sizes && product.sizes.length > 0 ? product.sizes : ['US 8', 'US 8.5', 'US 9', 'US 9.5', 'US 10', 'US 11'];
@@ -62,6 +66,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const deliveryEnd = new Date(today.setDate(today.getDate() + 2)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   const handleAddToCartClick = () => {
+    if (userRole === 'guest') {
+      if (onRequireLogin) {
+        onRequireLogin();
+      }
+      return;
+    }
+
     const sizeToUse = selectedSize || availableSizes[0] || 'US 9';
     const colorToUse = currentColor || availableColors[0] || product.colorway;
 
@@ -81,6 +92,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   const handleBuyNowClick = () => {
+    if (userRole === 'guest') {
+      if (onRequireLogin) {
+        onRequireLogin();
+      }
+      return;
+    }
+
     const sizeToUse = selectedSize || availableSizes[0] || 'US 9';
     const colorToUse = currentColor || availableColors[0] || product.colorway;
 
@@ -97,6 +115,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   const handleWishlistClick = () => {
+    if (userRole === 'guest') {
+      if (onRequireLogin) {
+        onRequireLogin();
+      }
+      return;
+    }
     onAddToWishlist(product);
     setWishlistAdded(true);
     setTimeout(() => setWishlistAdded(false), 1200);
@@ -430,40 +454,60 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
 
             {/* Action Buttons: Add to Bag, Buy Now (below Add to Bag) */}
-            <div className="space-y-2.5 pt-2">
+            {userRole === 'guest' && (
+              <div className="mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-amber-400 text-lg shrink-0">lock</span>
+                <div className="text-[11px] leading-tight text-neutral-300">
+                  <p className="font-bold text-white">Guest Viewing Mode</p>
+                  <p className="text-neutral-400">All photos and specs are visible. Sign in to book & reserve your pair.</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2.5 pt-1">
               <button
                 disabled={isOutOfStock}
                 onClick={handleAddToCartClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] ${
+                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
                   isOutOfStock
                     ? 'dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#868686] text-gray-500 cursor-not-allowed border dark:border-[#262626] border-gray-200'
+                    : userRole === 'guest'
+                    ? 'bg-[#D10000] text-white hover:bg-[#a80000] active:scale-[0.99]'
                     : addedAnimation
                     ? 'bg-emerald-600 text-white'
                     : 'bg-[#D10000] text-white hover:bg-[#a80000] active:scale-[0.99]'
                 }`}
               >
                 <span className="material-symbols-outlined text-base">
-                  {isOutOfStock ? 'block' : 'shopping_bag'}
+                  {isOutOfStock ? 'block' : userRole === 'guest' ? 'login' : 'shopping_bag'}
                 </span>
-                <span>{isOutOfStock ? 'Variant Out of Stock' : addedAnimation ? 'Added to Bag ✓' : 'Add to Bag'}</span>
+                <span>
+                  {isOutOfStock 
+                    ? 'Variant Out of Stock' 
+                    : userRole === 'guest' 
+                    ? 'Sign In to Book This Pair' 
+                    : addedAnimation 
+                    ? 'Added to Bag ✓' 
+                    : 'Add to Bag'}
+                </span>
               </button>
 
               <button
                 disabled={isOutOfStock}
                 onClick={handleBuyNowClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[48px] ${
+                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
                   isOutOfStock
                     ? 'bg-[#5c0000] text-gray-400 cursor-not-allowed'
                     : 'bg-emerald-700 text-white hover:bg-emerald-800 active:scale-[0.99]'
                 }`}
               >
-                <span className="material-symbols-outlined text-base">bolt</span>
-                <span>Buy Now</span>
+                <span className="material-symbols-outlined text-base">{userRole === 'guest' ? 'login' : 'bolt'}</span>
+                <span>{userRole === 'guest' ? 'Sign In for Instant Checkout' : 'Buy Now'}</span>
               </button>
 
               <button
                 onClick={handleWishlistClick}
-                className="w-full py-2.5 text-xs font-bold uppercase tracking-widest dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:bg-gray-100 transition-colors rounded-xl flex items-center justify-center gap-1.5 min-h-[44px]"
+                className="w-full py-2.5 text-xs font-bold uppercase tracking-widest dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:bg-gray-100 transition-colors rounded-xl flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-base text-red-600">
                   {wishlistAdded ? 'favorite' : 'favorite_border'}

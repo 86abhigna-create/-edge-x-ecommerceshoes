@@ -521,12 +521,12 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
       {/* Sidebar Footer */}
       <div className="p-3 border-t dark:border-[#262626] border-gray-200 dark:bg-[#141414] bg-gray-50/50 rounded-b-2xl">
         <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
-          <div className="w-7 h-7 rounded-full bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 text-xs font-black">
-            OP
+          <div className="w-7 h-7 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-black">
+            NA
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">Store Admin</p>
-            <p className="text-[10px] dark:text-neutral-500 text-gray-400 truncate">admin@edgex.com</p>
+            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">Neravati Abhigna</p>
+            <p className="text-[10px] text-emerald-400 truncate">neravatiabhigna@gmail.com</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-1.5 pt-1">
