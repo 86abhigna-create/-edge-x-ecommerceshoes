@@ -37,11 +37,11 @@ export default function App() {
       fit: "cover" as const
     },
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787501254/download_4.jpg",
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787852503/Luxury_Black_Loafers_for_Men___Timeless_Style_by_Fashion_Aura_1.jpg",
       subtitle: "Fall/Winter 2026 Collection",
-      title: "Step Into\nThe Edge",
-      desc: "Discover high-end architectural aesthetics and raw daily functionality.",
-      fit: "contain" as const
+      title: "",
+      desc: "Step up your style with comfort, quality, and confidence.",
+      fit: "full-banner" as const
     },
     {
       src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787502109/Thrilled_to_team_up_with_Symbol_Premium_on_this_exciting_project_Stay_tuned_for_something_special_photoshoot_creativeproductshoot.jpg",
@@ -691,14 +691,29 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full min-h-[440px] sm:min-h-[500px] md:min-h-[560px] aspect-[4/5] sm:aspect-[16/10] md:aspect-[2.2/1] dark:bg-[#0D0D0D] bg-black flex flex-col justify-end p-6 md:p-12 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-md mx-0 md:mx-4 mt-0 md:mt-4 group">
+            <section className="relative w-full min-h-[420px] sm:min-h-[480px] md:min-h-[540px] aspect-[4/5] sm:aspect-[16/10] md:aspect-[16/9] lg:aspect-[2/1] dark:bg-[#111111] bg-[#141414] flex flex-col justify-end p-6 md:p-12 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-md mx-0 md:mx-4 mt-0 md:mt-4 group">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
                   className={`absolute inset-0 z-0 transition-opacity duration-700 ease-in-out ${idx === activeHeroIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                   style={{ opacity: idx === activeHeroIndex ? 1 : 0, visibility: idx === activeHeroIndex ? 'visible' : 'hidden' }}
                 >
-                  {hero.fit === 'contain' ? (
+                  {hero.fit === 'full-banner' ? (
+                    <>
+                      {/* Entire image spans 100% of the screen edge-to-edge without zooming or cropping */}
+                      <img
+                        className="w-full h-full object-fill object-center select-none"
+                        alt={hero.subtitle || 'Hero Banner'}
+                        src={hero.src}
+                        loading={idx === 0 ? 'eager' : 'lazy'}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/hero_custom.png';
+                        }}
+                      />
+                      {/* Gentle bottom shade for navigation contrast without obscuring content */}
+                      <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                    </>
+                  ) : hero.fit === 'contain' ? (
                     <>
                       {/* Blurred ambient atmosphere behind */}
                       <img
