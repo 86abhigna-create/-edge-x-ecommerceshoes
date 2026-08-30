@@ -6,7 +6,8 @@ interface CheckoutModalProps {
   onClose: () => void;
   cartItems: CartItem[];
   onOrderSuccess: (order: Order) => void;
-  addresses?: Address[]; // Add addresses prop
+  addresses?: Address[];
+  onSaveAddress?: (address: Address) => void;
 }
 
 interface AddressOption {
@@ -14,6 +15,7 @@ interface AddressOption {
   label: string;
   fullName: string;
   street: string;
+  apartment?: string;
   city: string;
   state: string;
   zip: string;
@@ -25,12 +27,13 @@ interface AddressOption {
 const addressToOption = (addr: Address): AddressOption => ({
   id: addr.id,
   label: addr.type === 'shipping' ? 'Shipping Address' : 'Billing Address',
-  fullName: addr.fullName,
-  street: addr.street + (addr.apartment ? `, ${addr.apartment}` : ''),
-  city: addr.city,
-  state: addr.state,
-  zip: addr.zip,
-  country: addr.country,
+  fullName: addr.fullName || addr.full_name || 'Alex Vance',
+  street: addr.street || '',
+  apartment: addr.apartment || '',
+  city: addr.city || '',
+  state: addr.state || '',
+  zip: addr.zip || '',
+  country: addr.country || 'United States',
   phone: addr.phone || '',
 });
 
@@ -75,22 +78,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   cartItems,
   onOrderSuccess,
   addresses,
+  onSaveAddress,
 }) => {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>(1);
 
   // Address State - use passed addresses or fallback to defaults
   const [selectedAddressId, setSelectedAddressId] = useState<string>(() => {
     if (addresses && addresses.length > 0) {
-      return addresses[0].id;
+      const def = addresses.find((a) => a.isDefault) || addresses[0];
+      return def.id;
     }
     return 'addr-1';
   });
+  
+  // Custom or new address state
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
-  const [customAddress, setCustomAddress] = useState<AddressOption>({
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [addressValidationError, setAddressValidationError] = useState<string>('');
+  const [addressSuccessFeedback, setAddressSuccessFeedback] = useState<string>('');
+  const [saveAddressToProfile, setSaveAddressToProfile] = useState<boolean>(true);
+
+  // Form state for either adding a new address or editing an existing one
+  const [addressForm, setAddressForm] = useState<AddressOption>({
     id: 'addr-custom',
-    label: 'New Address',
+    label: 'New Delivery Destination',
     fullName: 'Alex Vance',
     street: '',
+    apartment: '',
     city: '',
     state: '',
     zip: '',
@@ -98,33 +112,59 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     phone: '',
   });
 
-  // Convert passed addresses to AddressOption format
-  const availableAddresses = addresses && addresses.length > 0 
-    ? addresses.map(addressToOption)
-    : [
-        {
-          id: 'addr-1',
-          label: 'Primary Residence (Home)',
-          fullName: 'Alex Vance',
-          street: '742 Evergreen Terrace, Suite 4B',
-          city: 'New York',
-          state: 'NY',
-          zip: '10001',
-          country: 'United States',
-          phone: '+1 (555) 019-2834',
-        },
-        {
-          id: 'addr-2',
-          label: 'EDGE Design Studio (Office)',
-          fullName: 'Alex Vance',
-          street: '120 Broadway Ave, Floor 18',
-          city: 'New York',
-          state: 'NY',
-          zip: '10005',
-          country: 'United States',
-          phone: '+1 (555) 882-9102',
-        },
-      ];
+  // Local list of addresses allowing user edits during checkout session
+  const [localAddresses, setLocalAddresses] = useState<AddressOption[]>(() => {
+    if (addresses && addresses.length > 0) {
+      return addresses.map(addressToOption);
+    }
+    return [
+      {
+        id: 'addr-1',
+        label: 'Primary Residence (Home)',
+        fullName: 'Alex Vance',
+        street: '742 Evergreen Terrace',
+        apartment: 'Suite 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        country: 'United States',
+        phone: '+1 (555) 019-2834',
+      },
+      {
+        id: 'addr-2',
+        label: 'EDGE Design Studio (Office)',
+        fullName: 'Alex Vance',
+        street: '120 Broadway Ave',
+        apartment: 'Floor 18',
+        city: 'New York',
+        state: 'NY',
+        zip: '10005',
+        country: 'United States',
+        phone: '+1 (555) 882-9102',
+      },
+    ];
+  });
+
+  // Synchronize modal state whenever modal opens or addresses prop changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(1);
+      setIsAddingNewAddress(false);
+      setEditingAddressId(null);
+      setAddressValidationError('');
+      setCreatedOrder(null);
+      setIsVerifying(false);
+      setVerificationPhase('initiating');
+      setUserEnteredOtp('');
+
+      if (addresses && addresses.length > 0) {
+        const mapped = addresses.map(addressToOption);
+        setLocalAddresses(mapped);
+        const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
+        setSelectedAddressId(defaultAddr.id);
+      }
+    }
+  }, [isOpen, addresses]);
 
   // Delivery State
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string>('express');
@@ -182,10 +222,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const shippingFee = subtotal > 200 && selectedDeliveryId === 'express' ? 0 : deliveryOption.price;
   const grandTotal = Math.max(0, subtotal - couponDiscount + shippingFee);
 
-  // Address Selection
-  const activeAddress = isAddingNewAddress
-    ? customAddress
-    : availableAddresses.find((a) => a.id === selectedAddressId) || availableAddresses[0];
+  // Active address resolution
+  const getActiveAddress = (): AddressOption => {
+    if (isAddingNewAddress) {
+      return addressForm;
+    }
+    if (editingAddressId) {
+      return { ...addressForm, id: editingAddressId };
+    }
+    const found = localAddresses.find((a) => a.id === selectedAddressId);
+    if (found) return found;
+    if (localAddresses.length > 0) return localAddresses[0];
+    return addressForm;
+  };
+
+  const activeAddress = getActiveAddress();
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,10 +260,98 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
+  // Step 1 Validation & Progression Handler
+  const handleProceedToDelivery = () => {
+    setAddressValidationError('');
+    setAddressSuccessFeedback('');
+
+    if (isAddingNewAddress) {
+      if (!addressForm.fullName.trim()) {
+        setAddressValidationError('Please enter your full name for shipment delivery.');
+        return;
+      }
+      if (!addressForm.street.trim()) {
+        setAddressValidationError('Please enter your street address.');
+        return;
+      }
+      if (!addressForm.city.trim()) {
+        setAddressValidationError('Please enter your city.');
+        return;
+      }
+
+      // If user is adding new address and wants to save it
+      const newAddrId = 'addr-' + Date.now();
+      const finalizedNewAddress: AddressOption = {
+        ...addressForm,
+        id: newAddrId,
+        label: addressForm.label || 'Saved Shipping Destination',
+      };
+
+      setLocalAddresses((prev) => [finalizedNewAddress, ...prev.filter(a => a.id !== newAddrId)]);
+      setSelectedAddressId(newAddrId);
+      setIsAddingNewAddress(false);
+
+      if (saveAddressToProfile && onSaveAddress) {
+        onSaveAddress({
+          id: newAddrId,
+          type: 'shipping',
+          fullName: finalizedNewAddress.fullName,
+          street: finalizedNewAddress.street,
+          apartment: finalizedNewAddress.apartment || '',
+          city: finalizedNewAddress.city,
+          state: finalizedNewAddress.state || '',
+          zip: finalizedNewAddress.zip || '',
+          country: finalizedNewAddress.country || 'United States',
+          phone: finalizedNewAddress.phone || '',
+          isDefault: true,
+        });
+      }
+    } else if (editingAddressId) {
+      if (!addressForm.fullName.trim() || !addressForm.street.trim() || !addressForm.city.trim()) {
+        setAddressValidationError('Please fill in Full Name, Street Address, and City.');
+        return;
+      }
+
+      // Update the edited address in local list
+      setLocalAddresses((prev) =>
+        prev.map((a) => (a.id === editingAddressId ? { ...addressForm, id: editingAddressId } : a))
+      );
+      setSelectedAddressId(editingAddressId);
+      setEditingAddressId(null);
+
+      if (saveAddressToProfile && onSaveAddress) {
+        onSaveAddress({
+          id: editingAddressId,
+          type: 'shipping',
+          fullName: addressForm.fullName,
+          street: addressForm.street,
+          apartment: addressForm.apartment || '',
+          city: addressForm.city,
+          state: addressForm.state || '',
+          zip: addressForm.zip || '',
+          country: addressForm.country || 'United States',
+          phone: addressForm.phone || '',
+          isDefault: true,
+        });
+      }
+    } else {
+      // Validate that an existing address is selected
+      const current = localAddresses.find((a) => a.id === selectedAddressId);
+      if (!current || !current.street.trim()) {
+        setAddressValidationError('Please select or enter a valid shipping address.');
+        return;
+      }
+    }
+
+    setCurrentStep(2);
+  };
+
   // Payment Verification Handlers
   const handleStartVerification = () => {
-    if (isAddingNewAddress && (!customAddress.street || !customAddress.city || !customAddress.zip)) {
-      alert('Please fill out all address fields before proceeding.');
+    const currentActive = getActiveAddress();
+    if (!currentActive.street.trim() || !currentActive.city.trim()) {
+      setCurrentStep(1);
+      setAddressValidationError('Please ensure a valid shipping address is provided.');
       return;
     }
 
@@ -220,7 +359,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setIsVerifying(true);
     setVerificationPhase('initiating');
 
-    // Simulate 1.5s security handshake then prompt for OTP/Confirmation
+    // Simulate 1.2s security handshake then prompt for OTP/Confirmation
     setTimeout(() => {
       setVerificationPhase('otp_required');
       setIsVerifying(false);
@@ -241,8 +380,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setIsVerifying(true);
     setVerificationPhase('verified');
 
-    // Finalize order creation
+    // Finalize order creation with accurate address
     setTimeout(() => {
+      const finalAddr = getActiveAddress();
       const itemSnapshots: OrderItemSnapshot[] = cartItems.map((ci) => ({
         productId: ci.product.id,
         productName: ci.product.name,
@@ -261,6 +401,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       else if (paymentCategory === 'wallet') pMethodLabel = `Digital Wallet (${selectedWallet})`;
       else pMethodLabel = 'Cash on Delivery (COD)';
 
+      const fullStreet = finalAddr.apartment 
+        ? `${finalAddr.street}, ${finalAddr.apartment}` 
+        : finalAddr.street;
+
       const newOrder: Order = {
         orderId: 'EX-' + Math.floor(100000 + Math.random() * 900000),
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -270,12 +414,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         status: 'Processing',
         paymentMethod: pMethodLabel,
         shippingAddress: {
-          fullName: activeAddress.fullName,
-          street: activeAddress.street,
-          city: activeAddress.city,
-          state: activeAddress.state,
-          zip: activeAddress.zip,
-          country: activeAddress.country,
+          fullName: finalAddr.fullName || 'Alex Vance',
+          street: fullStreet,
+          apartment: finalAddr.apartment || '',
+          city: finalAddr.city,
+          state: finalAddr.state || '',
+          zip: finalAddr.zip || '',
+          country: finalAddr.country || 'United States',
+          phone: finalAddr.phone || '',
         },
       };
 
@@ -283,11 +429,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       onOrderSuccess(newOrder);
       setIsVerifying(false);
       setCurrentStep(6);
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 dark:bg-[#F2F2F2] bg-black/70 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 dark:bg-black/80 bg-black/60 backdrop-blur-xs overflow-y-auto">
       <div className="dark:bg-[#0D0D0D] bg-white w-full max-w-2xl border dark:border-[#262626] border-gray-200 shadow-2xl rounded-2xl relative flex flex-col my-auto max-h-[92vh] overflow-hidden">
         
         {/* Modal Header & Progress Stepper */}
@@ -327,7 +473,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       isPassed
                         ? 'bg-emerald-600 dark:text-[#F2F2F2] text-gray-900'
                         : isActive
-                        ? 'bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 ring-2 ring-[#0051d5]'
+                        ? 'bg-[#D10000] text-white ring-2 ring-[#D10000]/40'
                         : 'dark:bg-[#262626] bg-gray-200 dark:text-[#868686] text-gray-500'
                     }`}
                   >
@@ -335,7 +481,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </div>
                   <span
                     className={`text-[10px] font-bold mt-1 uppercase ${
-                      isActive ? 'dark:text-[#F2F2F2] text-gray-900' : 'dark:text-[#868686] text-gray-500'
+                      isActive ? 'text-[#D10000]' : isPassed ? 'text-emerald-600' : 'dark:text-[#868686] text-gray-500'
                     }`}
                   >
                     {s.label}
@@ -354,115 +500,517 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <div className="space-y-4">
               <div>
                 <h3 className="text-base font-black dark:text-[#F2F2F2] text-gray-900 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">location_on</span>
-                  <span>1. Select Shipping Address</span>
+                  <span className="material-symbols-outlined text-lg text-[#D10000]">location_on</span>
+                  <span>1. Shipping Destination & Address</span>
                 </h3>
                 <p className="text-xs dark:text-[#868686] text-gray-500 mt-0.5">
-                  Choose a saved destination or enter a new address for express dispatch.
+                  Select a saved destination, edit details, or add a new delivery address.
                 </p>
               </div>
 
+              {/* Automatic Persistence Banner */}
+              <div className="p-3 dark:bg-[#151515] bg-red-50/70 border dark:border-neutral-800 border-red-200/60 rounded-xl flex items-center gap-2.5 text-xs">
+                <span className="material-symbols-outlined text-base text-[#D10000] shrink-0">bookmark_added</span>
+                <p className="dark:text-neutral-300 text-gray-700 text-[11px] leading-relaxed">
+                  <strong className="text-[#D10000]">Auto-Save Enabled:</strong> Any new address added or edited during this booking is automatically saved to your profile and will be pre-selected on your next order booking.
+                </p>
+              </div>
+
+              {addressSuccessFeedback && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base shrink-0">check_circle</span>
+                  <span>{addressSuccessFeedback}</span>
+                </div>
+              )}
+
+              {addressValidationError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400 font-semibold flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base shrink-0">error</span>
+                  <span>{addressValidationError}</span>
+                </div>
+              )}
+
               {/* Saved Address List */}
               <div className="space-y-3">
-                {availableAddresses.map((addr) => {
+                {localAddresses.map((addr) => {
                   const isSelected = !isAddingNewAddress && selectedAddressId === addr.id;
+                  const isEditingThis = editingAddressId === addr.id;
 
                   return (
                     <div
                       key={addr.id}
-                      onClick={() => {
-                        setIsAddingNewAddress(false);
-                        setSelectedAddressId(addr.id);
-                      }}
-                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                      className={`p-4 rounded-xl border transition-all ${
                         isSelected
-                          ? 'dark:bg-[#0D0D0D] bg-white border-[#D10000] ring-2 ring-[#000f3f]/10 shadow-sm'
+                          ? 'dark:bg-[#0D0D0D] bg-white border-[#D10000] ring-2 ring-[#D10000]/10 shadow-sm'
                           : 'dark:bg-[#1a1a1a] bg-gray-50 dark:border-[#262626] border-gray-200 hover:dark:bg-[#0D0D0D] bg-white'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            checked={isSelected}
-                            onChange={() => {}}
-                            className="w-4 h-4 dark:text-[#F2F2F2] text-gray-900 focus:ring-[#000f3f]"
-                          />
-                          <div>
-                            <span className="font-extrabold text-xs dark:text-[#F2F2F2] text-gray-900 uppercase bg-blue-50 text-[#D10000] px-2 py-0.5 rounded border border-blue-200">
-                              {addr.label}
+                      {!isEditingThis ? (
+                        <div className="flex items-start justify-between">
+                          <div
+                            onClick={() => {
+                              setIsAddingNewAddress(false);
+                              setEditingAddressId(null);
+                              setSelectedAddressId(addr.id);
+                              setAddressValidationError('');
+                            }}
+                            className="flex items-start gap-3 cursor-pointer flex-grow"
+                          >
+                            <input
+                              type="radio"
+                              name="checkoutAddress"
+                              checked={isSelected}
+                              onChange={() => {}}
+                              className="w-4 h-4 mt-0.5 text-[#D10000] focus:ring-[#D10000]"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-extrabold text-[10px] uppercase bg-red-50 dark:bg-red-950/40 text-[#D10000] px-2 py-0.5 rounded border border-red-200 dark:border-red-900">
+                                  {addr.label}
+                                </span>
+                                {isSelected && (
+                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5">
+                                    <span className="material-symbols-outlined text-xs">check_circle</span>
+                                    <span>Selected</span>
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900 mt-1">{addr.fullName}</h4>
+                              <p className="text-xs dark:text-gray-300 text-gray-700 mt-0.5">
+                                {addr.street}
+                                {addr.apartment ? `, ${addr.apartment}` : ''}
+                              </p>
+                              <p className="text-xs dark:text-gray-400 text-gray-600">
+                                {addr.city}, {addr.state} {addr.zip}
+                              </p>
+                              <p className="text-[11px] dark:text-[#868686] text-gray-500 mt-0.5">
+                                {addr.country} {addr.phone ? `• ${addr.phone}` : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsAddingNewAddress(false);
+                              setSelectedAddressId(addr.id);
+                              setEditingAddressId(addr.id);
+                              setAddressForm({
+                                id: addr.id,
+                                label: addr.label,
+                                fullName: addr.fullName,
+                                street: addr.street,
+                                apartment: addr.apartment || '',
+                                city: addr.city,
+                                state: addr.state,
+                                zip: addr.zip,
+                                country: addr.country,
+                                phone: addr.phone || '',
+                              });
+                              setAddressValidationError('');
+                            }}
+                            className="px-3 py-1.5 text-xs font-bold text-[#D10000] hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg border border-transparent hover:border-red-200 dark:hover:border-red-900 transition-colors flex items-center gap-1 shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      ) : (
+                        /* Inline Address Editing Form */
+                        <div className="space-y-3 text-xs pt-1">
+                          <div className="flex items-center justify-between pb-2 border-b dark:border-[#262626] border-gray-200">
+                            <span className="font-bold uppercase text-[11px] text-[#D10000] flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">edit_note</span>
+                              <span>Edit Address Details</span>
                             </span>
-                            <h4 className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900 mt-1">{addr.fullName}</h4>
-                            <p className="text-xs text-[#45464f] mt-0.5">{addr.street}, {addr.city}, {addr.state} {addr.zip}</p>
-                            <p className="text-[11px] dark:text-[#868686] text-gray-500">{addr.country} • {addr.phone}</p>
+                            <button
+                              type="button"
+                              onClick={() => setEditingAddressId(null)}
+                              className="text-[11px] dark:text-gray-400 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                Full Name *
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.fullName}
+                                onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="Recipient Name"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                Phone Number
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.phone}
+                                onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="+1 (555) 000-0000"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                              Street Address *
+                            </label>
+                            <input
+                              type="text"
+                              value={addressForm.street}
+                              onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                              className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                              placeholder="e.g. 742 Evergreen Terrace"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                Apt / Suite / Unit
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.apartment}
+                                onChange={(e) => setAddressForm({ ...addressForm, apartment: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="Suite 4B"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                City *
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.city}
+                                onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="New York"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                State
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.state}
+                                onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="NY"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                ZIP / Postal Code
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.zip}
+                                onChange={(e) => setAddressForm({ ...addressForm, zip: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="10001"
+                              />
+                            </div>
+                            <div>
+                              <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                                Country
+                              </label>
+                              <input
+                                type="text"
+                                value={addressForm.country}
+                                onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
+                                className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none text-xs"
+                                placeholder="United States"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs dark:text-gray-300 text-gray-700">
+                              <input
+                                type="checkbox"
+                                checked={saveAddressToProfile}
+                                onChange={(e) => setSaveAddressToProfile(e.target.checked)}
+                                className="rounded text-[#D10000] focus:ring-[#D10000]"
+                              />
+                              <span>Save updates to my address book</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!addressForm.fullName.trim() || !addressForm.street.trim() || !addressForm.city.trim()) {
+                                  setAddressValidationError('Please provide Full Name, Street Address, and City.');
+                                  return;
+                                }
+                                setLocalAddresses((prev) =>
+                                  prev.map((a) => (a.id === editingAddressId ? { ...addressForm, id: editingAddressId } : a))
+                                );
+                                if (saveAddressToProfile && onSaveAddress) {
+                                  onSaveAddress({
+                                    id: editingAddressId,
+                                    type: 'shipping',
+                                    fullName: addressForm.fullName,
+                                    street: addressForm.street,
+                                    apartment: addressForm.apartment || '',
+                                    city: addressForm.city,
+                                    state: addressForm.state || '',
+                                    zip: addressForm.zip || '',
+                                    country: addressForm.country || 'United States',
+                                    phone: addressForm.phone || '',
+                                  });
+                                }
+                                setEditingAddressId(null);
+                                setAddressValidationError('');
+                              }}
+                              className="bg-[#D10000] text-white px-4 py-1.5 rounded-lg font-bold text-xs hover:bg-[#8a0000] transition-colors"
+                            >
+                              Save Address
+                            </button>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   );
                 })}
 
-                {/* Add New Address Option */}
+                {/* Add New Address Card */}
                 <div
-                  onClick={() => setIsAddingNewAddress(true)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                  className={`p-4 rounded-xl border transition-all ${
                     isAddingNewAddress
-                      ? 'dark:bg-[#0D0D0D] bg-white border-[#D10000] ring-2 ring-[#000f3f]/10 shadow-sm'
-                      : 'dark:bg-[#1a1a1a] bg-gray-50 dark:border-[#262626] border-gray-200 hover:dark:bg-[#0D0D0D] bg-white'
+                      ? 'dark:bg-[#0D0D0D] bg-white border-[#D10000] ring-2 ring-[#D10000]/10 shadow-sm'
+                      : 'dark:bg-[#1a1a1a] bg-gray-50 dark:border-[#262626] border-gray-200 hover:dark:bg-[#0D0D0D] bg-white cursor-pointer'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div
+                    onClick={() => {
+                      setIsAddingNewAddress(true);
+                      setEditingAddressId(null);
+                      setAddressValidationError('');
+                      setAddressForm({
+                        id: 'addr-new',
+                        label: 'New Delivery Address',
+                        fullName: 'Alex Vance',
+                        street: '',
+                        apartment: '',
+                        city: '',
+                        state: '',
+                        zip: '',
+                        country: 'United States',
+                        phone: '',
+                      });
+                    }}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
                     <input
                       type="radio"
+                      name="checkoutAddress"
                       checked={isAddingNewAddress}
                       onChange={() => {}}
-                      className="w-4 h-4 dark:text-[#F2F2F2] text-gray-900"
+                      className="w-4 h-4 text-[#D10000] focus:ring-[#D10000]"
                     />
-                    <span className="font-bold text-xs dark:text-[#F2F2F2] text-gray-900 uppercase">+ Enter New Delivery Address</span>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm text-[#D10000]">add_location_alt</span>
+                      <span className="font-bold text-xs dark:text-[#F2F2F2] text-gray-900 uppercase">
+                        + Enter New Delivery Address
+                      </span>
+                    </div>
                   </div>
 
                   {isAddingNewAddress && (
                     <div className="mt-4 space-y-3 pt-3 border-t dark:border-[#262626] border-gray-200 text-xs">
-                      <div>
-                        <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">Full Name</label>
-                        <input
-                          type="text"
-                          value={customAddress.fullName}
-                          onChange={(e) => setCustomAddress({ ...customAddress, fullName: e.target.value })}
-                          className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded focus:border-[#D10000] outline-none"
-                          placeholder="e.g. Alex Vance"
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            Full Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={addressForm.fullName}
+                            onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="Recipient Full Name"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            Phone Number
+                          </label>
+                          <input
+                            type="text"
+                            value={addressForm.phone}
+                            onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="+1 (555) 000-0000"
+                          />
+                        </div>
                       </div>
+
                       <div>
-                        <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">Street Address</label>
+                        <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                          Street Address *
+                        </label>
                         <input
                           type="text"
-                          value={customAddress.street}
-                          onChange={(e) => setCustomAddress({ ...customAddress, street: e.target.value })}
-                          className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded focus:border-[#D10000] outline-none"
+                          value={addressForm.street}
+                          onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
+                          className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
                           placeholder="e.g. 100 Innovation Way"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">City</label>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            Apt / Suite / Unit
+                          </label>
                           <input
                             type="text"
-                            value={customAddress.city}
-                            onChange={(e) => setCustomAddress({ ...customAddress, city: e.target.value })}
-                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded focus:border-[#D10000] outline-none"
+                            value={addressForm.apartment}
+                            onChange={(e) => setAddressForm({ ...addressForm, apartment: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="Apt 4B"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            City *
+                          </label>
+                          <input
+                            type="text"
+                            value={addressForm.city}
+                            onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
                             placeholder="New York"
                           />
                         </div>
                         <div>
-                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">State / Zip</label>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            State
+                          </label>
                           <input
                             type="text"
-                            value={customAddress.state}
-                            onChange={(e) => setCustomAddress({ ...customAddress, state: e.target.value })}
-                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded focus:border-[#D10000] outline-none"
-                            placeholder="NY 10001"
+                            value={addressForm.state}
+                            onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="NY"
                           />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            ZIP / Postal Code
+                          </label>
+                          <input
+                            type="text"
+                            value={addressForm.zip}
+                            onChange={(e) => setAddressForm({ ...addressForm, zip: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="10001"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-bold dark:text-[#F2F2F2] text-gray-900 uppercase text-[10px] mb-1">
+                            Country
+                          </label>
+                          <input
+                            type="text"
+                            value={addressForm.country}
+                            onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })}
+                            className="w-full px-3 py-2 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-lg focus:border-[#D10000] outline-none"
+                            placeholder="United States"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs dark:text-gray-300 text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={saveAddressToProfile}
+                            onChange={(e) => setSaveAddressToProfile(e.target.checked)}
+                            className="rounded text-[#D10000] focus:ring-[#D10000]"
+                          />
+                          <span>Save to my profile for next order bookings</span>
+                        </label>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddingNewAddress(false);
+                              setAddressValidationError('');
+                            }}
+                            className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!addressForm.fullName.trim()) {
+                                setAddressValidationError('Please enter your full name for shipment delivery.');
+                                return;
+                              }
+                              if (!addressForm.street.trim()) {
+                                setAddressValidationError('Please enter your street address.');
+                                return;
+                              }
+                              if (!addressForm.city.trim()) {
+                                setAddressValidationError('Please enter your city.');
+                                return;
+                              }
+
+                              const newAddrId = 'addr-' + Date.now();
+                              const finalizedNewAddress: AddressOption = {
+                                ...addressForm,
+                                id: newAddrId,
+                                label: addressForm.label || 'Saved Shipping Destination',
+                              };
+
+                              setLocalAddresses((prev) => [finalizedNewAddress, ...prev.filter(a => a.id !== newAddrId)]);
+                              setSelectedAddressId(newAddrId);
+                              setIsAddingNewAddress(false);
+                              setAddressValidationError('');
+                              setAddressSuccessFeedback('✓ Address added, saved, and selected for this and future bookings!');
+
+                              if (saveAddressToProfile && onSaveAddress) {
+                                onSaveAddress({
+                                  id: newAddrId,
+                                  type: 'shipping',
+                                  fullName: finalizedNewAddress.fullName,
+                                  street: finalizedNewAddress.street,
+                                  apartment: finalizedNewAddress.apartment || '',
+                                  city: finalizedNewAddress.city,
+                                  state: finalizedNewAddress.state || '',
+                                  zip: finalizedNewAddress.zip || '',
+                                  country: finalizedNewAddress.country || 'United States',
+                                  phone: finalizedNewAddress.phone || '',
+                                  isDefault: true,
+                                });
+                              }
+                            }}
+                            className="px-4 py-2 bg-[#D10000] text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000] transition-colors flex items-center gap-1.5 shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-sm">bookmark_add</span>
+                            <span>Save & Select</span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -472,8 +1020,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
               <div className="flex justify-end pt-4 border-t dark:border-[#262626] border-gray-200">
                 <button
-                  onClick={() => setCurrentStep(2)}
-                  className="bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000] transition-colors flex items-center gap-2"
+                  onClick={handleProceedToDelivery}
+                  className="bg-[#D10000] text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#8a0000] transition-colors flex items-center gap-2 shadow-sm"
                 >
                   <span>Continue to Delivery</span>
                   <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -569,6 +1117,40 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <p className="text-xs dark:text-[#868686] text-gray-500 mt-0.5">
                   Confirm items, sizes, quantities, and apply promotional discounts.
                 </p>
+              </div>
+
+              {/* Shipping Destination & Delivery Summary */}
+              <div className="p-4 dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between items-center pb-2 border-b dark:border-[#262626] border-gray-200">
+                  <span className="font-extrabold text-xs dark:text-[#F2F2F2] text-gray-900 uppercase flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-[#D10000]">pin_drop</span>
+                    <span>Shipping Destination & Courier</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-[#D10000] font-bold text-[11px] hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Change Address</span>
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <p className="font-bold text-xs dark:text-[#F2F2F2] text-gray-900">{activeAddress.fullName}</p>
+                    <p className="dark:text-gray-300 text-gray-600 mt-0.5">
+                      {activeAddress.street}{activeAddress.apartment ? `, ${activeAddress.apartment}` : ''}
+                    </p>
+                    <p className="dark:text-gray-400 text-gray-500">
+                      {activeAddress.city}, {activeAddress.state} {activeAddress.zip}
+                    </p>
+                    {activeAddress.phone && <p className="text-[11px] dark:text-[#868686] text-gray-500">{activeAddress.phone}</p>}
+                  </div>
+                  <div className="sm:border-l sm:pl-3 dark:border-[#262626] border-gray-200 flex flex-col justify-center">
+                    <span className="text-[10px] font-bold uppercase dark:text-[#868686] text-gray-500">Transit Method</span>
+                    <span className="font-black text-xs dark:text-[#F2F2F2] text-gray-900 mt-0.5">{deliveryOption.name}</span>
+                    <span className="text-[11px] text-[#D10000] font-semibold">{deliveryOption.days} • {shippingFee === 0 ? 'FREE Shipping' : `₹${shippingFee.toLocaleString('en-IN')}`}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Itemized List */}

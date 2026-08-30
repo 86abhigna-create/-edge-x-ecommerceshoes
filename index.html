@@ -9,35 +9,60 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
     <style>
-      /* Hide default Google Translate bar and popups */
-      .goog-te-banner-frame.skiptranslate, .goog-te-banner-frame {
+      /* Completely hide default Google Translate top banner bar, popups, and tooltips */
+      .goog-te-banner-frame.skiptranslate,
+      .goog-te-banner-frame,
+      iframe.goog-te-banner-frame,
+      .goog-te-balloon-frame,
+      #goog-gt-tt,
+      .goog-te-gadget-icon,
+      .goog-te-gadget-simple img,
+      .VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q,
+      .VIpgJd-ZVi9C-aOH6Zb-w8Aysz,
+      .VIpgJd-ZVi9C-bHsbAb-w8Aysz,
+      .VIpgJd-yAWNEb-hvhgNd-pSzOP,
+      .VIpgJd-yAWNEb-L7lbkb {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        pointer-events: none !important;
+      }
+      /* Keep Google Translate container active in the DOM so .goog-te-combo renders and operates */
+      #google_translate_element {
+        position: fixed !important;
+        top: -9999px !important;
+        left: -9999px !important;
+        width: 1px !important;
+        height: 1px !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        z-index: -9999 !important;
+        overflow: hidden !important;
       }
       body {
         top: 0px !important;
-      }
-      .goog-te-gadget-icon {
-        display: none !important;
-      }
-      #goog-gt-tt, .goog-te-balloon-frame {
-        display: none !important;
+        position: static !important;
       }
       .goog-text-highlight {
         background-color: transparent !important;
         box-shadow: none !important;
       }
-      #google_translate_element {
-        display: none !important;
+      font {
+        background-color: transparent !important;
+        box-shadow: none !important;
       }
-      .skiptranslate {
-        font-size: 0 !important;
-      }
-      .sktranslate {
-        display: inline !important;
+      /* Prevent Material Symbols icons and brand names from being translated */
+      .material-symbols-outlined,
+      .notranslate,
+      [translate="no"] {
+        -webkit-transform: none !important;
+        font-family: 'Material Symbols Outlined' !important;
       }
     </style>
   </head>
-  <body>
+  <body class="notranslate-icons">
     <div id="google_translate_element"></div>
     <script type="text/javascript">
       function googleTranslateElementInit() {
@@ -51,6 +76,28 @@
         } catch (e) {
           console.warn('Translate init error:', e);
         }
+      }
+
+      // Automatically ensure all material-symbols-outlined have notranslate & translate="no"
+      function markIconsNoTranslate() {
+        document.querySelectorAll('.material-symbols-outlined').forEach(function(el) {
+          if (!el.classList.contains('notranslate')) {
+            el.classList.add('notranslate');
+          }
+          if (el.getAttribute('translate') !== 'no') {
+            el.setAttribute('translate', 'no');
+          }
+        });
+      }
+
+      if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function() {
+          markIconsNoTranslate();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+          markIconsNoTranslate();
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
       }
     </script>
     <script type="text/javascript" async defer src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

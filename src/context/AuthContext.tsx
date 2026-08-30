@@ -26,8 +26,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const OWNER_EMAIL = 'neravatiabhigna@gmail.com';
+export const OWNER_EMAILS = ['neravatiabhigna@gmail.com', 'neravatiabhigna29@gmail.com'];
 export const OWNER_PASSWORD = 'Bhuvi@2006';
+
+export const isOwnerEmail = (email?: string) => {
+  if (!email) return false;
+  return OWNER_EMAILS.includes(email.trim().toLowerCase());
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -100,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createLocalUser = (email: string, fullName?: string): User => {
-    const isOwner = email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase();
+    const isOwner = isOwnerEmail(email);
     return {
       id: isOwner ? 'owner-neravatiabhigna' : `user-${Date.now()}`,
       email: email.includes('@') ? email : `${email}@edgex.com`,
@@ -129,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    const isOwner = cleanEmail === OWNER_EMAIL.toLowerCase();
+    const isOwner = isOwnerEmail(cleanEmail);
 
     if (isOwner && password !== OWNER_PASSWORD) {
       throw new Error(`Owner account registration requires authorized master credentials.`);
@@ -167,11 +172,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const cleanEmail = email.trim().toLowerCase();
-    const isOwner = cleanEmail === OWNER_EMAIL.toLowerCase();
+    const isOwner = isOwnerEmail(cleanEmail);
 
     if (isOwner) {
       if (password !== OWNER_PASSWORD) {
-        throw new Error('Invalid password for Owner account (neravatiabhigna@gmail.com). Access denied.');
+        throw new Error('Invalid password for Owner account. Access denied.');
       }
       const localUser = createLocalUser(cleanEmail, 'Neravati Abhigna');
       setLocalUserSession(localUser);
@@ -213,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async (selectedAccount?: GoogleAccountDetails): Promise<{ role: 'customer' | 'owner'; email: string; name: string }> => {
     const email = selectedAccount?.email?.trim() || 'neravatiabhigna29@gmail.com';
-    const isOwner = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+    const isOwner = isOwnerEmail(email);
     const role: 'customer' | 'owner' = isOwner ? 'owner' : (selectedAccount?.role || 'customer');
     const defaultName = isOwner ? 'Neravati Abhigna (Owner)' : (email.includes('@') ? email.split('@')[0] : 'Google User');
     const name = selectedAccount?.name || defaultName;

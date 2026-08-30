@@ -106,6 +106,8 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
   const [notifFilter, setNotifFilter] = useState<string>('all');
   const [sidebarSearch, setSidebarSearch] = useState<string>('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const [orderSearchQuery, setOrderSearchQuery] = useState<string>('');
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const handleSelectTab = (tabId: string) => {
     setActiveSubTab(tabId);
@@ -862,6 +864,69 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
             </div>
           </div>
 
+          {/* Recent Orders Spotlight with Sneaker Images */}
+          <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 rounded-xl space-y-4 shadow-xs">
+            <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-[#D10000]" />
+                <h4 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">Recent Customer Orders & Product Previews</h4>
+              </div>
+              <button
+                onClick={() => handleSelectTab('orders')}
+                className="text-xs font-bold text-[#D10000] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>View All ({orders.length})</span>
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            {orders.length === 0 ? (
+              <p className="text-xs dark:text-[#868686] text-gray-500 py-4 text-center">No orders recorded yet. Book a pair from the storefront to see live order cards.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {orders.slice(0, 3).map((o) => (
+                  <div key={o.orderId} className="p-3.5 dark:bg-[#141414] bg-gray-50 rounded-xl border dark:border-[#262626] border-gray-200 space-y-2.5 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="font-extrabold text-[#D10000]">{o.orderId}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-500">
+                        {o.status}
+                      </span>
+                    </div>
+                    <p className="font-bold dark:text-[#F2F2F2] text-gray-900">
+                      {o.shippingAddress?.fullName || 'Customer'} • <span className="text-[#D10000]">₹{o.total.toLocaleString('en-IN')}</span>
+                    </p>
+                    {/* Sneaker Images Row */}
+                    <div className="flex items-center gap-2 overflow-x-auto py-1">
+                      {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
+                        o.itemSnapshots.map((snap, sIdx) => (
+                          <div
+                            key={sIdx}
+                            onClick={() => setPreviewImage({ url: snap.image, title: snap.productName })}
+                            className="relative w-12 h-12 shrink-0 bg-white rounded-lg border dark:border-gray-200 border-gray-200 p-0.5 flex items-center justify-center cursor-zoom-in group shadow-xs"
+                            title={`${snap.productName} (${snap.selectedSize})`}
+                          >
+                            <img src={snap.image} alt={snap.productName} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
+                          </div>
+                        ))
+                      ) : (
+                        o.items.map((it, iIdx) => it.product?.image ? (
+                          <div
+                            key={iIdx}
+                            onClick={() => setPreviewImage({ url: it.product.image, title: it.product.name })}
+                            className="relative w-12 h-12 shrink-0 bg-white rounded-lg border dark:border-gray-200 border-gray-200 p-0.5 flex items-center justify-center cursor-zoom-in group shadow-xs"
+                            title={`${it.product.name} (${it.selectedSize})`}
+                          >
+                            <img src={it.product.image} alt={it.product.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
+                          </div>
+                        ) : null)
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6">
             <h4 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900 mb-4">Quick Operational Status</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
@@ -1258,89 +1323,239 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
       )}
 
       {/* 8. ORDERS */}
-      {activeSubTab === 'orders' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center pb-4 border-b dark:border-[#262626] border-gray-200">
-            <div>
-              <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Customer Order Fulfillment & Historical Ledger</h3>
-              <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Review customer orders, update dispatch status, and inspect preserved order snapshots.</p>
-            </div>
-          </div>
-          {orders.length === 0 ? (
-            <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-12 text-center text-xs dark:text-[#868686] text-gray-500">
-              No customer orders received yet.
-            </div>
-          ) : (
-            <div className="space-y-4 text-xs">
-              {orders.map((o) => (
-                <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-4 rounded-xl shadow-xs">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-3 border-b dark:border-[#262626] border-gray-200 gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-sm text-[#D10000]">{o.orderId}</span>
-                        <span className="text-xs dark:text-[#868686] text-gray-500">• {o.date}</span>
-                      </div>
-                      <p className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 mt-0.5">
-                        Customer: <span className="font-black text-[#D10000]">{o.shippingAddress.fullName}</span> ({o.shippingAddress.city}, {o.shippingAddress.state})
-                      </p>
-                      <p className="text-[11px] dark:text-[#868686] text-gray-500">Address: {o.shippingAddress.street}, {o.shippingAddress.city}, {o.shippingAddress.zip}</p>
-                      <p className="text-[11px] dark:text-[#868686] text-gray-500">Payment: <strong className="dark:text-[#F2F2F2] text-gray-900">{o.paymentMethod}</strong></p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <select
-                        value={o.status}
-                        onChange={(e) => onUpdateOrderStatus(o.orderId, e.target.value as Order['status'])}
-                        className="dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 text-xs font-bold px-3 py-1.5 uppercase dark:text-[#F2F2F2] text-gray-900 rounded outline-none focus:ring-1 focus:ring-[#000f3f]"
-                      >
-                        <option value="Order Placed">1. Order Placed</option>
-                        <option value="Payment Confirmed">2. Payment Confirmed</option>
-                        <option value="Order Confirmed">3. Order Confirmed</option>
-                        <option value="Processing">4. Processing</option>
-                        <option value="Packed">5. Packed</option>
-                        <option value="Shipped">6. Shipped</option>
-                        <option value="Out for Delivery">7. Out for Delivery</option>
-                        <option value="Delivered">8. Delivered</option>
-                        <option value="Payment Failed">⚡ Payment Failed</option>
-                        <option value="Cancelled">❌ Cancelled</option>
-                        <option value="Return Requested">🔄 Return Requested</option>
-                        <option value="Returned">📦 Returned</option>
-                        <option value="Refund Initiated">💳 Refund Initiated</option>
-                        <option value="Refunded">💰 Refunded</option>
-                      </select>
-                      <span className="font-black text-base dark:text-[#F2F2F2] text-gray-900">${o.total}</span>
-                    </div>
-                  </div>
+      {activeSubTab === 'orders' && (() => {
+        const filteredOrders = orders.filter((o) => {
+          if (!orderSearchQuery.trim()) return true;
+          const q = orderSearchQuery.toLowerCase();
+          const matchId = o.orderId.toLowerCase().includes(q);
+          const matchCust = o.shippingAddress?.fullName?.toLowerCase().includes(q) || false;
+          const matchCity = o.shippingAddress?.city?.toLowerCase().includes(q) || false;
+          const matchItems = (o.itemSnapshots || []).some((s) => s.productName?.toLowerCase().includes(q)) ||
+            (o.items || []).some((i) => i.product?.name?.toLowerCase().includes(q));
+          return matchId || matchCust || matchCity || matchItems;
+        });
 
-                  {/* Render preserved itemSnapshots if present, or fallback to items */}
-                  <div className="space-y-2">
-                    {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
-                      o.itemSnapshots.map((snap, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-[#45464f] p-2.5 dark:bg-[#0D0D0D] bg-white rounded-lg border dark:border-[#262626] border-gray-200">
-                          <div className="flex items-center gap-3">
-                            <img src={snap.image} alt={snap.productName} className="w-10 h-10 object-contain mix-blend-multiply dark:bg-white bg-gray-50 border dark:border-gray-200 border-gray-200 rounded p-0.5" />
-                            <div>
-                              <p className="font-bold dark:text-[#F2F2F2] text-gray-900 text-xs">{snap.quantity}x {snap.productName}</p>
-                              <p className="text-[11px] dark:text-[#868686] text-gray-500">Color: {snap.selectedColor} • Size: {snap.selectedSize}</p>
-                            </div>
-                          </div>
-                          <span className="font-extrabold dark:text-[#F2F2F2] text-gray-900">${snap.price * snap.quantity}</span>
-                        </div>
-                      ))
-                    ) : (
-                      o.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between text-[#45464f] p-2 dark:bg-[#0D0D0D] bg-white rounded border dark:border-[#262626] border-gray-200">
-                          <span>{item.quantity}x {item.product ? item.product.name : 'Deactivated Shoe'} (Size: {item.selectedSize})</span>
-                          <span className="font-bold">${(item.product ? item.product.price : 0) * item.quantity}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b dark:border-[#262626] border-gray-200">
+              <div>
+                <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Customer Order Fulfillment & Historical Ledger</h3>
+                <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Review live customer orders, inspect high-resolution product snapshots, and manage delivery status.</p>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 dark:text-neutral-400 text-gray-500" />
+                  <input
+                    type="text"
+                    value={orderSearchQuery}
+                    onChange={(e) => setOrderSearchQuery(e.target.value)}
+                    placeholder="Search by order ID, customer, sneaker..."
+                    className="w-full pl-9 pr-3 py-1.5 text-xs dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 rounded-lg dark:text-[#F2F2F2] text-gray-900 outline-none focus:border-[#D10000]"
+                  />
+                  {orderSearchQuery && (
+                    <button
+                      onClick={() => setOrderSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
-              ))}
+                <span className="text-xs font-bold text-[#D10000] dark:bg-red-950/40 bg-red-50 px-3 py-1.5 border border-red-200 dark:border-red-900 rounded-lg shrink-0">
+                  {filteredOrders.length} Order{filteredOrders.length === 1 ? '' : 's'}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {filteredOrders.length === 0 ? (
+              <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-12 text-center text-xs dark:text-[#868686] text-gray-500 rounded-xl space-y-2">
+                <ShoppingBag className="w-8 h-8 mx-auto text-gray-400" />
+                <p className="font-bold text-sm dark:text-gray-300 text-gray-700">No orders matching your criteria.</p>
+                <p className="text-xs">Customer orders booked on the storefront will appear here with complete snapshot imagery.</p>
+              </div>
+            ) : (
+              <div className="space-y-5 text-xs">
+                {filteredOrders.map((o) => {
+                  const trackingNum = o.trackingNumber || `EX-TRK-${o.orderId.replace('EX-', '')}`;
+                  return (
+                    <div key={o.orderId} className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-5 sm:p-6 space-y-4 rounded-xl shadow-xs hover:border-neutral-400 dark:hover:border-neutral-700 transition-all">
+                      {/* Top Bar: Order ID, Date, Customer info & Status Dropdown */}
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b dark:border-[#262626] border-gray-200 gap-3">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-black text-base text-[#D10000] tracking-wide">{o.orderId}</span>
+                            <span className="text-xs font-semibold dark:text-[#868686] text-gray-500">• {o.date}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                              Verified Order
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900">
+                            Customer: <span className="font-black text-[#D10000]">{o.shippingAddress?.fullName || 'Valued Customer'}</span> 
+                            {o.shippingAddress?.city && <span> • {o.shippingAddress.city}, {o.shippingAddress.state}</span>}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] dark:text-[#868686] text-gray-500">
+                            <span><strong>Address:</strong> {o.shippingAddress?.street}{o.shippingAddress?.apartment ? `, ${o.shippingAddress.apartment}` : ''}, {o.shippingAddress?.city} {o.shippingAddress?.zip}</span>
+                            {o.shippingAddress?.phone && <span>• <strong>Phone:</strong> {o.shippingAddress.phone}</span>}
+                            <span>• <strong>Payment:</strong> <strong className="dark:text-[#F2F2F2] text-gray-900">{o.paymentMethod}</strong></span>
+                            <span>• <strong>Tracking:</strong> {trackingNum}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 dark:border-[#262626] border-gray-200">
+                          <div className="flex flex-col items-start md:items-end">
+                            <span className="text-[10px] font-bold uppercase tracking-wider dark:text-[#868686] text-gray-500">Dispatch Status</span>
+                            <select
+                              value={o.status}
+                              onChange={(e) => onUpdateOrderStatus(o.orderId, e.target.value as Order['status'])}
+                              className="dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 text-xs font-extrabold px-3 py-1.5 uppercase dark:text-[#F2F2F2] text-gray-900 rounded-lg outline-none focus:ring-1 focus:ring-[#D10000] cursor-pointer mt-0.5"
+                            >
+                              <option value="Order Placed">1. Order Placed</option>
+                              <option value="Payment Confirmed">2. Payment Confirmed</option>
+                              <option value="Order Confirmed">3. Order Confirmed</option>
+                              <option value="Processing">4. Processing</option>
+                              <option value="Packed">5. Packed</option>
+                              <option value="Shipped">6. Shipped</option>
+                              <option value="Out for Delivery">7. Out for Delivery</option>
+                              <option value="Delivered">8. Delivered</option>
+                              <option value="Payment Failed">⚡ Payment Failed</option>
+                              <option value="Cancelled">❌ Cancelled</option>
+                              <option value="Return Requested">🔄 Return Requested</option>
+                              <option value="Returned">📦 Returned</option>
+                              <option value="Refund Initiated">💳 Refund Initiated</option>
+                              <option value="Refunded">💰 Refunded</option>
+                            </select>
+                          </div>
+                          <div className="text-right pl-3 border-l dark:border-[#262626] border-gray-200">
+                            <span className="text-[10px] font-bold uppercase tracking-wider dark:text-[#868686] text-gray-500 block">Total</span>
+                            <span className="font-black text-base text-[#D10000] block">₹{o.total.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Preserved Customer Ordered Products with Large Images */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[11px] font-extrabold uppercase tracking-wider dark:text-[#868686] text-gray-500 flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5 text-[#D10000]" />
+                            <span>Ordered Sneaker Silhouettes ({o.itemSnapshots ? o.itemSnapshots.length : o.items.length} item{(o.itemSnapshots ? o.itemSnapshots.length : o.items.length) === 1 ? '' : 's'})</span>
+                          </span>
+                          <span className="text-[10px] dark:text-[#868686] text-gray-400">Click image to inspect high-res</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
+                            o.itemSnapshots.map((snap, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 dark:bg-[#141414] bg-gray-50/80 rounded-xl border dark:border-[#262626] border-gray-200 hover:border-red-500/50 transition-colors gap-3"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {/* High-res sneaker thumbnail with hover zoom */}
+                                  <div
+                                    onClick={() => setPreviewImage({ url: snap.image, title: snap.productName })}
+                                    className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-white rounded-lg border dark:border-gray-200 border-gray-200 p-1 flex items-center justify-center cursor-zoom-in group shadow-xs"
+                                    title="Click to view enlarged sneaker image"
+                                  >
+                                    <img
+                                      src={snap.image}
+                                      alt={snap.productName}
+                                      className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 group-hover:scale-110"
+                                      loading="lazy"
+                                    />
+                                    <span className="absolute bottom-1 right-1 bg-black/70 text-white rounded p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <span className="material-symbols-outlined text-[10px]">zoom_in</span>
+                                    </span>
+                                  </div>
+
+                                  <div className="min-w-0">
+                                    <p className="font-black dark:text-[#F2F2F2] text-gray-900 text-xs sm:text-sm truncate">
+                                      {snap.productName}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold dark:bg-[#262626] bg-gray-200 dark:text-gray-300 text-gray-700">
+                                        Size: {snap.selectedSize}
+                                      </span>
+                                      {snap.selectedColor && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#D10000]/10 text-[#D10000]">
+                                          Color: {snap.selectedColor}
+                                        </span>
+                                      )}
+                                      <span className="text-[11px] font-extrabold dark:text-[#F2F2F2] text-gray-900">
+                                        Qty: {snap.quantity}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] dark:text-[#868686] text-gray-500 mt-0.5">
+                                      Unit Price: ₹{snap.price.toLocaleString('en-IN')}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="text-right shrink-0">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider dark:text-[#868686] text-gray-500 block">Line Total</span>
+                                  <span className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">
+                                    ₹{(snap.price * snap.quantity).toLocaleString('en-IN')}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            o.items.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 dark:bg-[#141414] bg-gray-50/80 rounded-xl border dark:border-[#262626] border-gray-200 hover:border-red-500/50 transition-colors gap-3"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {item.product?.image && (
+                                    <div
+                                      onClick={() => setPreviewImage({ url: item.product.image, title: item.product.name })}
+                                      className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-white rounded-lg border dark:border-gray-200 border-gray-200 p-1 flex items-center justify-center cursor-zoom-in group shadow-xs"
+                                    >
+                                      <img
+                                        src={item.product.image}
+                                        alt={item.product.name}
+                                        className="w-full h-full object-contain mix-blend-multiply transition-transform duration-200 group-hover:scale-110"
+                                      />
+                                      <span className="absolute bottom-1 right-1 bg-black/70 text-white rounded p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="material-symbols-outlined text-[10px]">zoom_in</span>
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="font-black dark:text-[#F2F2F2] text-gray-900 text-xs sm:text-sm truncate">
+                                      {item.product ? item.product.name : 'Deactivated Shoe'}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold dark:bg-[#262626] bg-gray-200 dark:text-gray-300 text-gray-700">
+                                        Size: {item.selectedSize}
+                                      </span>
+                                      <span className="text-[11px] font-extrabold dark:text-[#F2F2F2] text-gray-900">
+                                        Qty: {item.quantity}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] dark:text-[#868686] text-gray-500 mt-0.5">
+                                      Unit: ₹{((item.product ? item.product.price : 0)).toLocaleString('en-IN')}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider dark:text-[#868686] text-gray-500 block">Line Total</span>
+                                  <span className="font-black text-sm dark:text-[#F2F2F2] text-gray-900">
+                                    ₹{(((item.product ? item.product.price : 0) * item.quantity)).toLocaleString('en-IN')}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 9. CUSTOMERS */}
       {activeSubTab === 'customers' && (
@@ -1431,10 +1646,43 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                       </span>
                     </div>
 
+                    {/* Preserved Sneaker Images */}
+                    <div className="flex items-center gap-2 overflow-x-auto py-1">
+                      {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
+                        o.itemSnapshots.map((snap, sIdx) => (
+                          <div
+                            key={sIdx}
+                            onClick={() => setPreviewImage({ url: snap.image, title: snap.productName })}
+                            className="flex items-center gap-2 p-2 dark:bg-[#0D0D0D] bg-white rounded-lg border dark:border-[#262626] border-gray-200 cursor-zoom-in hover:border-red-500 transition-colors"
+                          >
+                            <img src={snap.image} alt={snap.productName} className="w-10 h-10 object-contain mix-blend-multiply bg-white rounded" />
+                            <div>
+                              <p className="font-bold dark:text-[#F2F2F2] text-gray-900 text-[11px]">{snap.productName}</p>
+                              <p className="text-[10px] dark:text-[#868686] text-gray-500">Size: {snap.selectedSize} • {snap.quantity}x</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        o.items.map((it, iIdx) => it.product?.image ? (
+                          <div
+                            key={iIdx}
+                            onClick={() => setPreviewImage({ url: it.product.image, title: it.product.name })}
+                            className="flex items-center gap-2 p-2 dark:bg-[#0D0D0D] bg-white rounded-lg border dark:border-[#262626] border-gray-200 cursor-zoom-in hover:border-red-500 transition-colors"
+                          >
+                            <img src={it.product.image} alt={it.product.name} className="w-10 h-10 object-contain mix-blend-multiply bg-white rounded" />
+                            <div>
+                              <p className="font-bold dark:text-[#F2F2F2] text-gray-900 text-[11px]">{it.product.name}</p>
+                              <p className="text-[10px] dark:text-[#868686] text-gray-500">Size: {it.selectedSize} • {it.quantity}x</p>
+                            </div>
+                          </div>
+                        ) : null)
+                      )}
+                    </div>
+
                     <div className="dark:bg-[#0D0D0D] bg-white p-3.5 rounded-lg border dark:border-[#262626] border-gray-200 space-y-1">
                       <p className="dark:text-[#F2F2F2] text-gray-900"><strong>Reason / Details:</strong> {o.returnReason || 'Fit / Size Adjustment'}</p>
-                      <p className="dark:text-[#868686] text-gray-500"><strong>Total Order Amount:</strong> ${o.total} • <strong>Payment Channel:</strong> {o.paymentMethod}</p>
-                      <p className="dark:text-[#868686] text-gray-500"><strong>Current Refund Status:</strong> {o.refundStatus || `Refund Initiated ($${o.total})`}</p>
+                      <p className="dark:text-[#868686] text-gray-500"><strong>Total Order Amount:</strong> ₹{o.total.toLocaleString('en-IN')} • <strong>Payment Channel:</strong> {o.paymentMethod}</p>
+                      <p className="dark:text-[#868686] text-gray-500"><strong>Current Refund Status:</strong> {o.refundStatus || `Refund Initiated (₹${o.total.toLocaleString('en-IN')})`}</p>
                     </div>
 
                     {/* Workflow Actions */}
@@ -1751,6 +1999,39 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                       <span className="dark:text-[#868686] text-gray-500 block font-bold">Expected Delivery:</span>
                       <span className="font-bold dark:text-[#F2F2F2] text-gray-900">{expectedDate}</span>
                     </div>
+                  </div>
+
+                  {/* Sneakers inside shipment box */}
+                  <div className="flex items-center gap-3 overflow-x-auto py-1">
+                    {o.itemSnapshots && o.itemSnapshots.length > 0 ? (
+                      o.itemSnapshots.map((snap, sIdx) => (
+                        <div
+                          key={sIdx}
+                          onClick={() => setPreviewImage({ url: snap.image, title: snap.productName })}
+                          className="flex items-center gap-2.5 p-2 dark:bg-[#141414] bg-gray-50 rounded-lg border dark:border-[#262626] border-gray-200 cursor-zoom-in hover:border-red-500 transition-colors"
+                        >
+                          <img src={snap.image} alt={snap.productName} className="w-11 h-11 object-contain mix-blend-multiply bg-white rounded p-0.5 border" />
+                          <div className="text-xs">
+                            <p className="font-bold dark:text-[#F2F2F2] text-gray-900">{snap.productName}</p>
+                            <p className="text-[11px] dark:text-[#868686] text-gray-500">Size: {snap.selectedSize} • {snap.quantity} Pair{snap.quantity === 1 ? '' : 's'}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      o.items.map((it, iIdx) => it.product?.image ? (
+                        <div
+                          key={iIdx}
+                          onClick={() => setPreviewImage({ url: it.product.image, title: it.product.name })}
+                          className="flex items-center gap-2.5 p-2 dark:bg-[#141414] bg-gray-50 rounded-lg border dark:border-[#262626] border-gray-200 cursor-zoom-in hover:border-red-500 transition-colors"
+                        >
+                          <img src={it.product.image} alt={it.product.name} className="w-11 h-11 object-contain mix-blend-multiply bg-white rounded p-0.5 border" />
+                          <div className="text-xs">
+                            <p className="font-bold dark:text-[#F2F2F2] text-gray-900">{it.product.name}</p>
+                            <p className="text-[11px] dark:text-[#868686] text-gray-500">Size: {it.selectedSize} • {it.quantity} Pair{it.quantity === 1 ? '' : 's'}</p>
+                          </div>
+                        </div>
+                      ) : null)
+                    )}
                   </div>
 
                   {o.deliveryNotes && (
@@ -2390,6 +2671,48 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in cursor-pointer"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div
+            className="relative max-w-lg w-full bg-white dark:bg-[#141414] border dark:border-[#262626] border-gray-200 rounded-2xl p-6 shadow-2xl space-y-4 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center pb-2 border-b dark:border-[#262626] border-gray-200">
+              <h4 className="font-black text-sm dark:text-[#F2F2F2] text-gray-900 flex items-center gap-2">
+                <Package className="w-4 h-4 text-[#D10000]" />
+                <span>{previewImage.title}</span>
+              </h4>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#262626] dark:text-gray-300 text-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="relative aspect-4/3 w-full bg-white rounded-xl flex items-center justify-center p-4 border border-gray-100">
+              <img
+                src={previewImage.url}
+                alt={previewImage.title}
+                className="w-full h-full object-contain mix-blend-multiply"
+              />
+            </div>
+            <div className="flex justify-between items-center pt-2 text-xs">
+              <span className="dark:text-[#868686] text-gray-500">High-Resolution Preserved Silhouette Snapshot</span>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="bg-[#D10000] text-white px-4 py-1.5 rounded-lg font-bold text-xs hover:bg-[#8a0000] transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
           </div>
         </div>
       )}

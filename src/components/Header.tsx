@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Menu"
             className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors p-2 md:hidden flex items-center justify-center min-w-[40px] min-h-[40px]"
           >
-            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 0" }}>
+            <span className="material-symbols-outlined notranslate text-2xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
               menu
             </span>
           </button>
@@ -114,25 +114,65 @@ export const Header: React.FC<HeaderProps> = ({
                 onSelectCategory('All Shoes');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="text-2xl sm:text-3xl font-['Bebas_Neue',sans-serif] tracking-normal dark:text-[#F2F2F2] text-gray-900 cursor-pointer select-none"
+              className="text-2xl sm:text-3xl font-['Bebas_Neue',sans-serif] tracking-normal dark:text-[#F2F2F2] text-gray-900 cursor-pointer select-none notranslate"
+              translate="no"
               style={{ fontFamily: "'Bebas Neue', 'Montserrat', sans-serif" }}
             >
               EDGEX
             </h1>
-            <button
-              onClick={() => {
-                setActiveTab('shop');
-                onSelectCategory('All Shoes');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="hidden sm:flex text-sm font-extrabold uppercase tracking-widest dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors"
-            >
-              Home
-            </button>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden sm:flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setActiveTab('shop');
+                  onSelectCategory('All Shoes');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`text-xs font-extrabold uppercase tracking-widest transition-colors ${
+                  activeTab === 'shop' ? 'text-[#D10000]' : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
+                }`}
+              >
+                Home
+              </button>
+              {userRole !== 'owner' && (
+                <button
+                  onClick={() => {
+                    setActiveTab('orders');
+                  }}
+                  className={`text-xs font-extrabold uppercase tracking-widest transition-colors flex items-center gap-1 ${
+                    activeTab === 'orders'
+                      ? 'text-[#D10000]'
+                      : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-sm">package_2</span>
+                  <span>Orders</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (userRole === 'customer') {
+                    setActiveTab('customer-dashboard');
+                  } else if (userRole === 'owner') {
+                    setActiveTab('owner-dashboard');
+                  } else {
+                    onOpenAuthModal();
+                  }
+                }}
+                className={`text-xs font-extrabold uppercase tracking-widest transition-colors flex items-center gap-1 ${
+                  activeTab === 'customer-dashboard' || activeTab === 'owner-dashboard'
+                    ? 'text-[#D10000]'
+                    : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
+                }`}
+              >
+                <span>{userRole === 'owner' ? 'Admin Portal' : 'You'}</span>
+                {userRole === 'customer' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
+              </button>
+            </nav>
             
             {/* Desktop Search Bar */}
             <div className="hidden md:flex items-center dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 rounded-full px-4 py-1.5 w-64 md:w-80 lg:w-96 focus-within:border-[#D10000] transition-colors relative">
-              <span className="material-symbols-outlined dark:text-[#868686] text-gray-500 text-lg mr-2">search</span>
+              <span className="material-symbols-outlined notranslate dark:text-[#868686] text-gray-500 text-lg mr-2" translate="no">search</span>
               <input
                 type="text"
                 placeholder="Search products..."
@@ -140,23 +180,25 @@ export const Header: React.FC<HeaderProps> = ({
                 onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
                 className="bg-transparent border-none text-xs dark:text-[#F2F2F2] text-gray-900 outline-none w-full dark:placeholder:text-[#868686] placeholder:dark:text-[#868686] text-gray-500"
               />
-              <div className="flex items-center gap-1.5 ml-2">
+              <div className="flex items-center gap-1.5 ml-2 notranslate" translate="no">
                 <button
                   onClick={handleVoiceSearch}
-                  className={`${isListening ? 'text-[#D10000]' : 'dark:text-[#868686] text-gray-500'} dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center`}
+                  className={`${isListening ? 'text-[#D10000]' : 'dark:text-[#868686] text-gray-500'} dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center notranslate`}
                   aria-label="Voice Search"
                   title="Search by voice"
+                  translate="no"
                 >
-                  <span className="material-symbols-outlined text-lg">mic</span>
+                  <span className="material-symbols-outlined notranslate text-lg" translate="no">mic</span>
                 </button>
                 <div className="w-px h-4 dark:bg-[#262626] bg-gray-200"></div>
                 <button
                   onClick={() => handleCameraClick(false)}
-                  className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center"
+                  className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center notranslate"
                   aria-label="Visual Search"
                   title="Search by photo"
+                  translate="no"
                 >
-                  <span className="material-symbols-outlined text-lg">photo_camera</span>
+                  <span className="material-symbols-outlined notranslate text-lg" translate="no">photo_camera</span>
                 </button>
                 <input 
                   type="file" 
@@ -180,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({
               isMobileSearchOpen ? 'text-[#D10000] bg-red-50 dark:bg-red-950/40' : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
             }`}
           >
-            <span className="material-symbols-outlined text-xl">
+            <span className="material-symbols-outlined notranslate text-xl" translate="no">
               {isMobileSearchOpen ? 'close' : 'search'}
             </span>
           </button>
@@ -192,9 +234,11 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={toggleDarkMode}
             title="Toggle Dark Mode"
-            className="flex items-center justify-center p-2 rounded-full min-w-[36px] min-h-[36px] dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]"
+            aria-label="Toggle Dark Mode"
+            className="flex items-center justify-center p-2 rounded-full min-w-[36px] min-h-[36px] dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] notranslate"
+            translate="no"
           >
-            <span className="material-symbols-outlined text-xl">
+            <span className="material-symbols-outlined notranslate text-xl" translate="no">
               {isDarkMode ? 'light_mode' : 'dark_mode'}
             </span>
           </button>
@@ -211,33 +255,51 @@ export const Header: React.FC<HeaderProps> = ({
               }
             }}
             title="Wishlist"
-            className="hidden sm:flex items-center dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] p-2 relative min-w-[36px] min-h-[36px] justify-center"
+            className="hidden sm:flex items-center dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] p-2 relative min-w-[36px] min-h-[36px] justify-center notranslate"
+            translate="no"
           >
-            <span className="material-symbols-outlined text-xl">favorite</span>
+            <span className="material-symbols-outlined notranslate text-xl" translate="no">favorite</span>
             {wishlistCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-[#D10000] dark:text-[#F2F2F2] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute top-0.5 right-0.5 bg-[#D10000] dark:text-[#F2F2F2] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center notranslate" translate="no">
                 {wishlistCount}
               </span>
             )}
+          </button>
+
+          {/* Quick Orders Button */}
+          <button
+            onClick={() => {
+              if (userRole === 'owner') {
+                setActiveTab('owner-dashboard');
+              } else {
+                setActiveTab('orders');
+              }
+            }}
+            title="View Orders & Purchase Records"
+            className="flex items-center dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] p-2 relative min-w-[36px] min-h-[36px] justify-center transition-colors notranslate"
+            translate="no"
+          >
+            <span className="material-symbols-outlined notranslate text-2xl" translate="no">package_2</span>
           </button>
 
           {/* Shopping Bag */}
           <button
             onClick={onOpenCart}
             aria-label="Shopping Bag"
-            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors relative p-2 flex items-center justify-center min-w-[40px] min-h-[40px]"
+            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors relative p-2 flex items-center justify-center min-w-[40px] min-h-[40px] notranslate"
+            translate="no"
           >
-            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 0" }}>
+            <span className="material-symbols-outlined notranslate text-2xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
               shopping_bag
             </span>
             {cartCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-[#D10000] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+              <span className="absolute top-0.5 right-0.5 bg-[#D10000] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
                 {cartCount}
               </span>
             )}
           </button>
 
-          {/* Auth / Account Badge */}
+          {/* You / Profile / Account Badge */}
           <button
             onClick={() => {
               if (userRole === 'owner') {
@@ -248,10 +310,20 @@ export const Header: React.FC<HeaderProps> = ({
                 onOpenAuthModal();
               }
             }}
-            className="dark:bg-[#F2F2F2] bg-black dark:text-[#0D0D0D] text-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 rounded-full hover:bg-[#D10000] hover:text-white dark:hover:bg-[#D10000] dark:hover:text-white transition-colors shadow-xs"
+            title={userRole === 'owner' ? 'Owner Dashboard (You)' : userRole === 'customer' ? 'Your Profile & Account (You)' : 'You • Sign In / Profile'}
+            className="dark:bg-[#F2F2F2] bg-black dark:text-[#0D0D0D] text-white px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 rounded-full hover:bg-[#D10000] hover:text-white dark:hover:bg-[#D10000] dark:hover:text-white transition-colors shadow-xs cursor-pointer select-none"
           >
-            <span className="material-symbols-outlined text-base">person</span>
-            <span className="hidden sm:inline">{userRole === 'owner' ? 'Owner' : userRole === 'customer' ? 'You' : 'Sign In'}</span>
+            <span className="material-symbols-outlined notranslate text-base" translate="no">
+              {userRole === 'owner' ? 'admin_panel_settings' : 'person'}
+            </span>
+            <span className="font-black tracking-wide">
+              {userRole === 'owner' ? 'You (Owner)' : userRole === 'customer' ? 'You' : 'You'}
+            </span>
+            {userRole === 'guest' ? (
+              <span className="hidden sm:inline text-[9px] font-normal opacity-80">(Sign In)</span>
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            )}
           </button>
         </div>
       </div>
@@ -260,7 +332,7 @@ export const Header: React.FC<HeaderProps> = ({
       {isMobileSearchOpen && (
         <div className="md:hidden px-4 py-2.5 dark:bg-[#141414] bg-gray-50 border-t dark:border-[#262626] border-gray-200 animate-in slide-in-from-top-2 duration-150">
           <div className="flex items-center dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-full px-3.5 py-1.5 focus-within:border-[#D10000] shadow-xs">
-            <span className="material-symbols-outlined dark:text-[#868686] text-gray-500 text-lg mr-2">search</span>
+            <span className="material-symbols-outlined notranslate dark:text-[#868686] text-gray-500 text-lg mr-2" translate="no">search</span>
             <input
               type="text"
               autoFocus
@@ -272,25 +344,28 @@ export const Header: React.FC<HeaderProps> = ({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery && setSearchQuery('')}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 mr-1"
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 mr-1 notranslate"
+                translate="no"
               >
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="material-symbols-outlined notranslate text-sm" translate="no">close</span>
               </button>
             )}
-            <div className="flex items-center gap-1 ml-1 border-l dark:border-[#262626] border-gray-200 pl-2">
+            <div className="flex items-center gap-1 ml-1 border-l dark:border-[#262626] border-gray-200 pl-2 notranslate" translate="no">
               <button
                 onClick={handleVoiceSearch}
-                className={`${isListening ? 'text-[#D10000]' : 'dark:text-[#868686] text-gray-500'} p-1 flex items-center justify-center`}
+                className={`${isListening ? 'text-[#D10000]' : 'dark:text-[#868686] text-gray-500'} p-1 flex items-center justify-center notranslate`}
                 aria-label="Voice Search"
+                translate="no"
               >
-                <span className="material-symbols-outlined text-base">mic</span>
+                <span className="material-symbols-outlined notranslate text-base" translate="no">mic</span>
               </button>
               <button
                 onClick={() => handleCameraClick(true)}
-                className="dark:text-[#868686] text-gray-500 p-1 flex items-center justify-center"
+                className="dark:text-[#868686] text-gray-500 p-1 flex items-center justify-center notranslate"
                 aria-label="Visual Search"
+                translate="no"
               >
-                <span className="material-symbols-outlined text-base">photo_camera</span>
+                <span className="material-symbols-outlined notranslate text-base" translate="no">photo_camera</span>
               </button>
               <input 
                 type="file" 

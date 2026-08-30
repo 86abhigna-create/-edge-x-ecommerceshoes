@@ -28,27 +28,43 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('shop');
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
 
-  const heroImages = [
+  interface HeroItem {
+    src: string;
+    mobileSrc?: string;
+    tabSrc?: string;
+    subtitle: string;
+    title: string;
+    desc: string;
+    fit: 'cover' | 'contain' | 'luxury-balanced';
+  }
+
+  const heroImages: HeroItem[] = [
     {
       src: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
+      mobileSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
+      tabSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
       subtitle: "Official Brand Drop",
       title: "EDGEX",
       desc: "The pinnacle of futuristic streetwear & precision engineered footwear.",
-      fit: "cover" as const
+      fit: "cover"
     },
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787852503/Luxury_Black_Loafers_for_Men___Timeless_Style_by_Fashion_Aura_1.jpg",
+      src: "/hero_fashion_aura_tab.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787852503/Luxury_Black_Loafers_for_Men___Timeless_Style_by_Fashion_Aura_1.jpg",
+      tabSrc: "/hero_fashion_aura_tab.png",
       subtitle: "Fall/Winter 2026 Collection",
-      title: "",
-      desc: "Step up your style with comfort, quality, and confidence.",
-      fit: "full-banner" as const
+      title: "Fashion Aura",
+      desc: "Step up your style with comfort, quality, and timeless leather luxury.",
+      fit: "cover"
     },
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787502109/Thrilled_to_team_up_with_Symbol_Premium_on_this_exciting_project_Stay_tuned_for_something_special_photoshoot_creativeproductshoot.jpg",
-      subtitle: "Essential Utility",
-      title: "Urban\nCamouflage",
-      desc: "Sleek aesthetics with cinematic lighting and ultra-sharp focus.",
-      fit: "contain" as const
+      src: "/hero_classic_leather_tab.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1788107263/Screenshot_2026-08-30_215705.png",
+      tabSrc: "/hero_classic_leather_tab.png",
+      subtitle: "Classic Heritage",
+      title: "Classic Style",
+      desc: "Premium hand-finished leather craftsmanship for unmatched elegance.",
+      fit: "cover"
     }
   ];
 
@@ -107,25 +123,63 @@ export default function App() {
   const [ownerPasswordInput, setOwnerPasswordInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
   
-  // Address state - lifted to App level
-  const [savedAddresses, setSavedAddresses] = useState<Address[]>([
-    {
-      id: 'addr-1',
-      user_id: 'user-1',
-      type: 'shipping',
-      fullName: 'Alex Vance',
-      phone: '',
-      street: '742 Evergreen Terrace',
-      apartment: '',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'USA',
-      isDefault: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  // Address state - lifted to App level with localStorage persistence
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>(() => {
+    try {
+      const stored = localStorage.getItem('edgex_saved_addresses_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load saved addresses from localStorage:', e);
     }
-  ]);
+    return [
+      {
+        id: 'addr-1',
+        user_id: 'user-1',
+        type: 'shipping',
+        fullName: 'Alex Vance',
+        phone: '+1 (555) 019-2834',
+        street: '742 Evergreen Terrace',
+        apartment: 'Suite 4B',
+        city: 'New York',
+        state: 'NY',
+        zip: '10001',
+        country: 'USA',
+        isDefault: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'addr-2',
+        user_id: 'user-1',
+        type: 'shipping',
+        fullName: 'Alex Vance',
+        phone: '+1 (555) 882-9102',
+        street: '120 Broadway Ave',
+        apartment: 'Floor 18',
+        city: 'New York',
+        state: 'NY',
+        zip: '10005',
+        country: 'USA',
+        isDefault: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    ];
+  });
+
+  // Sync savedAddresses to localStorage automatically
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('edgex_saved_addresses_v1', JSON.stringify(savedAddresses));
+    } catch (e) {
+      console.error('Failed to persist saved addresses to localStorage:', e);
+    }
+  }, [savedAddresses]);
   
   // API hooks for Supabase persistence
   const { user, signOut } = useAuth();
@@ -478,7 +532,66 @@ export default function App() {
       });
     });
 
-    setOrders((prev) => [newOrder, ...prev]);
+    const orderWithSnapshots: Order = {
+      ...newOrder,
+      itemSnapshots: (newOrder.itemSnapshots && newOrder.itemSnapshots.length > 0)
+        ? newOrder.itemSnapshots
+        : newOrder.items.map((item) => ({
+            productId: item.product?.id || 'prod',
+            productName: item.product?.name || 'Drop Sneaker',
+            image: item.product?.image || 'https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg',
+            price: item.product?.price || 0,
+            selectedSize: item.selectedSize || 'US 9',
+            selectedColor: item.selectedColor || 'Standard',
+            quantity: item.quantity || 1,
+          }))
+    };
+
+    // Save/update shipping address to savedAddresses with default priority for future bookings
+    if (newOrder.shippingAddress && newOrder.shippingAddress.street) {
+      const sa = newOrder.shippingAddress;
+      setSavedAddresses((prev) => {
+        const existingIdx = prev.findIndex(
+          (a) => a.street.toLowerCase() === sa.street.toLowerCase() && a.city.toLowerCase() === sa.city.toLowerCase()
+        );
+        if (existingIdx !== -1) {
+          const updated = {
+            ...prev[existingIdx],
+            fullName: sa.fullName || prev[existingIdx].fullName,
+            apartment: sa.apartment || prev[existingIdx].apartment || '',
+            state: sa.state || prev[existingIdx].state || '',
+            zip: sa.zip || prev[existingIdx].zip || '',
+            country: sa.country || prev[existingIdx].country || 'USA',
+            phone: sa.phone || prev[existingIdx].phone || '',
+            isDefault: true,
+            updatedAt: new Date().toISOString(),
+          };
+          const rest = prev.filter((_, idx) => idx !== existingIdx).map((a) => ({ ...a, isDefault: false }));
+          return [updated, ...rest];
+        } else {
+          const freshAddr: Address = {
+            id: `addr-${Date.now()}`,
+            user_id: 'user-1',
+            type: 'shipping',
+            fullName: sa.fullName || 'Alex Vance',
+            street: sa.street,
+            apartment: sa.apartment || '',
+            city: sa.city,
+            state: sa.state || '',
+            zip: sa.zip || '',
+            country: sa.country || 'USA',
+            phone: sa.phone || '',
+            isDefault: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          const rest = prev.map((a) => ({ ...a, isDefault: false }));
+          return [freshAddr, ...rest];
+        }
+      });
+    }
+
+    setOrders((prev) => [orderWithSnapshots, ...prev]);
     setCartItems([]);
     setNotifications((prev) => [
       {
@@ -671,7 +784,7 @@ export default function App() {
       {userRole === 'guest' && (
         <div className="bg-neutral-900 border-b border-neutral-800 text-neutral-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#D10000] animate-pulse" />
             <span>
               <strong className="text-white">Guest Catalog Access:</strong> You can view all high-res product photos, colorways, and specs. Sign in to book & reserve your pair.
             </span>
@@ -691,71 +804,100 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full min-h-[420px] sm:min-h-[480px] md:min-h-[540px] aspect-[4/5] sm:aspect-[16/10] md:aspect-[16/9] lg:aspect-[2/1] dark:bg-[#111111] bg-[#141414] flex flex-col justify-end p-6 md:p-12 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-md mx-0 md:mx-4 mt-0 md:mt-4 group">
+            <section className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[520px] dark:bg-[#0e0e0e] bg-[#121212] flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-xl mx-0 md:mx-4 mt-0 md:mt-4 group border dark:border-white/5 border-black/5">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
                   className={`absolute inset-0 z-0 transition-opacity duration-700 ease-in-out ${idx === activeHeroIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                   style={{ opacity: idx === activeHeroIndex ? 1 : 0, visibility: idx === activeHeroIndex ? 'visible' : 'hidden' }}
                 >
-                  {hero.fit === 'full-banner' ? (
-                    <>
-                      {/* Entire image spans 100% of the screen edge-to-edge without zooming or cropping */}
-                      <img
-                        className="w-full h-full object-fill object-center select-none"
-                        alt={hero.subtitle || 'Hero Banner'}
-                        src={hero.src}
-                        loading={idx === 0 ? 'eager' : 'lazy'}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/hero_custom.png';
-                        }}
-                      />
-                      {/* Gentle bottom shade for navigation contrast without obscuring content */}
-                      <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                    </>
+                  {hero.fit === 'luxury-balanced' ? (
+                    <div className="relative w-full h-full bg-[#181310] flex items-center justify-center overflow-hidden">
+                      {/* Ambient background extension to fill widescreen edges seamlessly without empty borders */}
+                      <picture className="absolute inset-0 w-full h-full pointer-events-none select-none">
+                        {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
+                        <img
+                          className="w-full h-full object-cover blur-2xl opacity-40 scale-110"
+                          alt=""
+                          aria-hidden="true"
+                          src={hero.mobileSrc || hero.src}
+                        />
+                      </picture>
+                      {/* Centered, unzoomed product image with comfortable scale */}
+                      <div className="relative z-1 w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8">
+                        <picture className="max-h-[92%] sm:max-h-[96%] max-w-[92%] sm:max-w-[95%] w-auto h-auto flex items-center justify-center">
+                          {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
+                          <img
+                            className="max-h-full max-w-full w-auto h-auto object-contain object-center drop-shadow-2xl select-none"
+                            alt={hero.subtitle || 'Hero Banner'}
+                            src={hero.mobileSrc || hero.src}
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/hero_fashion_aura_tab.png';
+                            }}
+                          />
+                        </picture>
+                      </div>
+                      {/* Soft ambient edge blend */}
+                      <div className="absolute inset-y-0 left-0 w-12 sm:w-20 md:w-28 bg-gradient-to-r from-[#181310] via-[#181310]/60 to-transparent pointer-events-none z-2"></div>
+                      <div className="absolute inset-y-0 right-0 w-12 sm:w-20 md:w-28 bg-gradient-to-l from-[#181310] via-[#181310]/60 to-transparent pointer-events-none z-2"></div>
+                      <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/75 via-transparent to-black/10"></div>
+                    </div>
                   ) : hero.fit === 'contain' ? (
-                    <>
-                      {/* Blurred ambient atmosphere behind */}
-                      <img
-                        className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-30 scale-125 pointer-events-none"
-                        alt=""
-                        aria-hidden="true"
-                        src={hero.src}
-                      />
-                      {/* Full uncropped image */}
-                      <img
-                        className="relative z-1 w-full h-full object-contain object-center transition-transform duration-[8000ms] scale-100 group-hover:scale-102"
-                        alt={hero.title}
-                        src={hero.src}
-                        loading={idx === 0 ? 'eager' : 'lazy'}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/hero_custom.png';
-                        }}
-                      />
-                      {/* Subtle readability gradient */}
-                      <div className="absolute inset-0 z-2 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    </>
+                    <div className="relative w-full h-full bg-[#121417] flex items-center justify-center overflow-hidden">
+                      {/* Ambient background extension */}
+                      <picture className="absolute inset-0 w-full h-full pointer-events-none select-none">
+                        {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
+                        <img
+                          className="w-full h-full object-cover blur-2xl opacity-35 scale-110"
+                          alt=""
+                          aria-hidden="true"
+                          src={hero.mobileSrc || hero.src}
+                        />
+                      </picture>
+                      {/* Centered, unzoomed sneaker product visual */}
+                      <div className="relative z-1 w-full h-full flex items-center justify-center sm:justify-end p-2 sm:p-4 md:p-6 lg:p-8">
+                        <picture className="max-h-[90%] sm:max-h-[95%] max-w-[90%] sm:max-w-[85%] w-auto h-auto flex items-center justify-center">
+                          {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
+                          <img
+                            className="max-h-full max-w-full w-auto h-auto object-contain object-center sm:object-right md:object-center drop-shadow-2xl select-none"
+                            alt={hero.title}
+                            src={hero.mobileSrc || hero.src}
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/hero_fashion_aura_tab.png';
+                            }}
+                          />
+                        </picture>
+                      </div>
+                      {/* Readable text background */}
+                      <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 md:w-1/2 bg-gradient-to-r from-black/85 via-black/40 to-transparent pointer-events-none z-2 hidden sm:block"></div>
+                      <div className="absolute inset-0 z-2 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none sm:hidden"></div>
+                    </div>
                   ) : (
                     <>
-                      <img
-                        className="w-full h-full object-cover object-center transition-transform duration-[10000ms] scale-100 group-hover:scale-105"
-                        alt={hero.title}
-                        src={hero.src}
-                        loading={idx === 0 ? 'eager' : 'lazy'}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/hero_custom.png';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent md:from-black/80 md:via-black/20 md:to-transparent"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent hidden md:block"></div>
+                      <picture className="w-full h-full block">
+                        {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
+                        <img
+                          className="w-full h-full object-cover object-center transition-transform duration-[10000ms] scale-100 group-hover:scale-105"
+                          alt={hero.title || hero.subtitle}
+                          src={hero.mobileSrc || hero.src}
+                          loading={idx === 0 ? 'eager' : 'lazy'}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = hero.src;
+                          }}
+                        />
+                      </picture>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent md:from-black/80 md:via-black/20 md:to-transparent pointer-events-none"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent hidden md:block pointer-events-none"></div>
                     </>
                   )}
                 </div>
               ))}
 
-              <div className="relative z-10 w-full flex flex-col gap-4 items-start max-w-2xl">
+              <div className="relative z-10 w-full flex flex-col gap-2.5 sm:gap-3 md:gap-4 items-start max-w-xl pointer-events-auto">
                 <div className="transition-all duration-700 ease-out transform translate-y-0 opacity-100" key={activeHeroIndex}>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                     <span className="inline-block py-1 px-3 bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-xs">
                       {heroImages[activeHeroIndex].subtitle}
                     </span>
@@ -764,12 +906,12 @@ export default function App() {
                     </span>
                   </div>
                   {heroImages[activeHeroIndex].title && (
-                    <h2 className="text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] font-['Bebas_Neue',sans-serif] text-white tracking-normal uppercase whitespace-pre-line drop-shadow-md">
+                    <h2 className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[60px] leading-[0.95] tracking-[-0.03em] font-['Bebas_Neue',sans-serif] text-white tracking-normal uppercase whitespace-pre-line drop-shadow-md">
                       {heroImages[activeHeroIndex].title}
                     </h2>
                   )}
                   {heroImages[activeHeroIndex].desc && (
-                    <p className="text-gray-200 text-xs md:text-sm font-medium max-w-md mt-2 drop-shadow-sm line-clamp-2">
+                    <p className="text-gray-200 text-xs sm:text-sm font-medium max-w-sm sm:max-w-md mt-1.5 sm:mt-2 drop-shadow-sm line-clamp-2">
                       {heroImages[activeHeroIndex].desc}
                     </p>
                   )}
@@ -779,23 +921,24 @@ export default function App() {
                     onClick={() => {
                       document.getElementById('featured-drops')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-[#D10000] text-white px-7 py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#a80000] active:scale-95 transition-all shadow-lg rounded-full flex items-center gap-2"
+                    className="bg-[#D10000] text-white px-6 sm:px-7 py-2.5 sm:py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#a80000] active:scale-95 transition-all shadow-lg rounded-full flex items-center gap-2 cursor-pointer notranslate-icons"
                   >
                     <span>Shop Collection</span>
-                    <span className="material-symbols-outlined text-sm">arrow_downward</span>
+                    <span className="material-symbols-outlined notranslate text-sm" translate="no">arrow_downward</span>
                   </button>
                 </div>
               </div>
               
               {/* Sleek Carousel Navigation & Indicators */}
-              <div className="absolute bottom-6 right-6 z-20 flex gap-3 items-center bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-xl">
+              <div className="absolute bottom-6 right-6 z-20 flex gap-3 items-center bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-xl notranslate" translate="no">
                 <button
                   onClick={() => setActiveHeroIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/30 text-white flex items-center justify-center transition-colors notranslate"
                   aria-label="Previous Slide"
                   type="button"
+                  translate="no"
                 >
-                  <span className="material-symbols-outlined text-lg">chevron_left</span>
+                  <span className="material-symbols-outlined notranslate text-lg" translate="no">chevron_left</span>
                 </button>
 
                 <div className="flex gap-1.5 items-center px-1">
@@ -812,11 +955,12 @@ export default function App() {
 
                 <button
                   onClick={() => setActiveHeroIndex((prev) => (prev + 1) % heroImages.length)}
-                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/30 text-white flex items-center justify-center transition-colors notranslate"
                   aria-label="Next Slide"
                   type="button"
+                  translate="no"
                 >
-                  <span className="material-symbols-outlined text-lg">chevron_right</span>
+                  <span className="material-symbols-outlined notranslate text-lg" translate="no">chevron_right</span>
                 </button>
               </div>
             </section>
@@ -890,16 +1034,17 @@ export default function App() {
                   <div>
                     <button
                       onClick={() => setIsFilterMenuOpen(true)}
-                      className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3.5 py-2 border rounded-full transition-all shadow-xs cursor-pointer ${
+                      className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3.5 py-2 border rounded-full transition-all shadow-xs cursor-pointer notranslate ${
                         activeFilterCount > 0
                           ? 'bg-[#D10000] text-white border-[#D10000]'
                           : 'dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 dark:border-[#262626] border-gray-200 dark:hover:border-[#F2F2F2] hover:border-black'
                       }`}
+                      translate="no"
                     >
-                      <span className="material-symbols-outlined text-sm">tune</span>
+                      <span className="material-symbols-outlined notranslate text-sm" translate="no">tune</span>
                       <span>Filters</span>
                       {activeFilterCount > 0 && (
-                        <span className="bg-amber-400 text-black w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center ml-0.5">
+                        <span className="bg-white text-black w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center ml-0.5">
                           {activeFilterCount}
                         </span>
                       )}
@@ -926,14 +1071,15 @@ export default function App() {
                 <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl shadow-2xl w-full max-w-lg p-6 text-left text-xs dark:text-[#F2F2F2] text-gray-900 relative animate-in fade-in zoom-in-95 duration-150">
                   <div className="flex justify-between items-center pb-3 border-b dark:border-[#262626] border-gray-200 mb-4">
                     <div className="flex items-center gap-2 font-bold uppercase tracking-wider dark:text-[#F2F2F2] text-gray-900 text-sm">
-                      <span className="material-symbols-outlined text-lg">tune</span>
+                      <span className="material-symbols-outlined notranslate text-lg" translate="no">tune</span>
                       <span>Product Catalog Filters</span>
                     </div>
                     <button
                       onClick={() => setIsFilterMenuOpen(false)}
-                      className="p-1 rounded-full dark:text-[#767680] text-gray-600 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:dark:bg-[#1a1a1a] bg-gray-50 transition-colors"
+                      className="p-1 rounded-full dark:text-[#767680] text-gray-600 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 dark:hover:bg-[#1a1a1a] hover:dark:bg-[#1a1a1a] bg-gray-50 transition-colors notranslate"
+                      translate="no"
                     >
-                      <span className="material-symbols-outlined text-lg">close</span>
+                      <span className="material-symbols-outlined notranslate text-lg" translate="no">close</span>
                     </button>
                   </div>
 
@@ -1625,6 +1771,20 @@ export default function App() {
         cartItems={cartItems}
         onOrderSuccess={handleOrderSuccess}
         addresses={savedAddresses}
+        onSaveAddress={(newOrUpdatedAddr) => {
+          setSavedAddresses((prev) => {
+            const isDef = newOrUpdatedAddr.isDefault !== false;
+            const updated = {
+              ...newOrUpdatedAddr,
+              isDefault: isDef,
+              updatedAt: new Date().toISOString(),
+            };
+            const others = prev
+              .filter((a) => a.id !== newOrUpdatedAddr.id)
+              .map((a) => (isDef ? { ...a, isDefault: false } : a));
+            return [updated, ...others];
+          });
+        }}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleAccountDetails } from '../context/AuthContext';
-import { User, Plus, X, ArrowRight, ShieldCheck, Check } from 'lucide-react';
+import { User, X, ShieldCheck, Check } from 'lucide-react';
 
 interface GoogleAccountChooserModalProps {
   isOpen: boolean;
@@ -9,56 +9,18 @@ interface GoogleAccountChooserModalProps {
   isLoading?: boolean;
 }
 
-export const LINKED_GOOGLE_ACCOUNTS: (GoogleAccountDetails & { subtitle: string })[] = [
-  {
-    email: 'neravatiabhigna29@gmail.com',
-    name: 'Neravati Abhigna',
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    role: 'customer',
-    subtitle: 'Primary Google Account (Active)',
-  },
-  {
-    email: 'neravatiabhigna@gmail.com',
-    name: 'Neravati Abhigna',
-    avatarUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
-    role: 'owner',
-    subtitle: 'Store Owner Account',
-  },
-  {
-    email: 'alex.vance@gmail.com',
-    name: 'Alex Vance',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    role: 'customer',
-    subtitle: 'Verified Sneakerhead Member',
-  },
-  {
-    email: 'jordan.brooks@gmail.com',
-    name: 'Jordan Brooks',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    role: 'customer',
-    subtitle: 'Personal Google Workspace',
-  },
-];
-
 export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps> = ({
   isOpen,
   onClose,
   onSelectAccount,
   isLoading = false,
 }) => {
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [customEmail, setCustomEmail] = useState('');
   const [customName, setCustomName] = useState('');
   const [customError, setCustomError] = useState('');
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
 
   if (!isOpen) return null;
-
-  const handleAccountClick = (account: GoogleAccountDetails) => {
-    if (isLoading) return;
-    setSelectedEmail(account.email);
-    onSelectAccount(account);
-  };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +36,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
       return;
     }
 
-    const isOwner = trimmed.toLowerCase() === 'neravatiabhigna@gmail.com';
+    const isOwner = ['neravatiabhigna@gmail.com', 'neravatiabhigna29@gmail.com'].includes(trimmed.toLowerCase());
     const fallbackName = customName.trim() || (trimmed.split('@')[0]);
 
     setSelectedEmail(trimmed);
@@ -99,12 +61,12 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
             type="button"
             disabled={isLoading}
             className="absolute top-5 right-5 p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-            aria-label="Close Google account chooser"
+            aria-label="Close Google sign-in dialog"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             {/* Official Google G Logo */}
             <div className="w-8 h-8 rounded-full bg-white p-1.5 flex items-center justify-center shadow-sm shrink-0">
               <svg viewBox="0 0 24 24" className="w-full h-full">
@@ -128,7 +90,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
             </div>
             <div>
               <h2 className="text-base font-bold text-white leading-snug">Sign in with Google</h2>
-              <p className="text-xs text-neutral-400">Choose an account to continue to <span className="text-neutral-200 font-semibold">EDGEX</span></p>
+              <p className="text-xs text-neutral-400">Continue to <span className="text-neutral-200 font-semibold">EDGEX</span></p>
             </div>
           </div>
         </div>
@@ -138,118 +100,65 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
           <div className="p-8 text-center space-y-3 bg-[#161616]">
             <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-sm font-semibold text-white">
-              Signing in as {selectedEmail || 'Google User'}...
+              Signing in as {selectedEmail || customEmail || 'Google User'}...
             </p>
             <p className="text-xs text-neutral-400">Connecting securely with Google authentication</p>
           </div>
         )}
 
-        {/* Accounts List */}
+        {/* Enter Google Account Details Form */}
         {!isLoading && (
-          <div className="p-4 space-y-2 max-h-[380px] overflow-y-auto">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 pt-1 pb-1">
-              Available Linked Google Accounts
-            </p>
+          <div className="p-5">
+            <form onSubmit={handleCustomSubmit} className="p-4 bg-neutral-900 rounded-xl border border-neutral-800 space-y-3.5 shadow-inner">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-neutral-400" />
+                  Enter Google Account Details
+                </span>
+              </div>
 
-            {LINKED_GOOGLE_ACCOUNTS.map((acc) => {
-              const isOwner = acc.role === 'owner';
-              return (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => handleAccountClick(acc)}
-                  className="w-full p-3 rounded-xl bg-neutral-900/90 hover:bg-neutral-800/90 border border-neutral-800 hover:border-neutral-700 transition-all flex items-center justify-between text-left group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={acc.avatarUrl}
-                      alt={acc.name}
-                      className="w-10 h-10 rounded-full object-cover border border-neutral-700 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-bold text-white truncate group-hover:text-red-400 transition-colors">
-                          {acc.name}
-                        </p>
-                        {isOwner && (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide bg-emerald-950 text-emerald-400 border border-emerald-800/50">
-                            Owner
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-neutral-400 truncate">{acc.email}</p>
-                      <p className="text-[10px] text-neutral-500 truncate mt-0.5">{acc.subtitle}</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-neutral-500 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                </button>
-              );
-            })}
-
-            {/* Custom Google Account Input Toggle */}
-            {!showCustomInput ? (
-              <button
-                type="button"
-                onClick={() => setShowCustomInput(true)}
-                className="w-full p-3 rounded-xl bg-neutral-900/40 hover:bg-neutral-900 border border-dashed border-neutral-700 hover:border-neutral-500 transition-colors flex items-center gap-3 text-left group cursor-pointer mt-3"
-              >
-                <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 group-hover:text-white shrink-0">
-                  <Plus className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-neutral-200 group-hover:text-white">Use another Google account</p>
-                  <p className="text-[10px] text-neutral-500">Sign in with any Gmail or Workspace email</p>
-                </div>
-              </button>
-            ) : (
-              <form onSubmit={handleCustomSubmit} className="p-3.5 bg-neutral-900 rounded-xl border border-neutral-700 mt-3 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-neutral-400" />
-                    Enter Google Account Details
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomInput(false);
-                      setCustomError('');
-                    }}
-                    className="text-[11px] text-neutral-400 hover:text-white cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-400 mb-1">
+                  Google Email
+                </label>
                 <input
                   type="email"
                   placeholder="Google Email (e.g. user@gmail.com)"
                   value={customEmail}
-                  onChange={(e) => setCustomEmail(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-700 text-white px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-red-500"
+                  onChange={(e) => {
+                    setCustomEmail(e.target.value);
+                    if (customError) setCustomError('');
+                  }}
+                  className="w-full bg-neutral-950 border border-neutral-700 text-white placeholder:text-neutral-500 px-3.5 py-2.5 rounded-lg text-xs focus:outline-none focus:border-red-500 transition-colors"
                   autoFocus
                 />
+              </div>
 
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-400 mb-1">
+                  Full Name <span className="text-neutral-500 font-normal">(optional)</span>
+                </label>
                 <input
                   type="text"
                   placeholder="Full Name (optional)"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-700 text-white px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-red-500"
+                  className="w-full bg-neutral-950 border border-neutral-700 text-white placeholder:text-neutral-500 px-3.5 py-2.5 rounded-lg text-xs focus:outline-none focus:border-red-500 transition-colors"
                 />
+              </div>
 
-                {customError && (
-                  <p className="text-[11px] text-red-400 font-medium">{customError}</p>
-                )}
+              {customError && (
+                <p className="text-[11px] text-red-400 font-medium">{customError}</p>
+              )}
 
-                <button
-                  type="submit"
-                  className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  Continue with this Google Account
-                </button>
-              </form>
-            )}
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#D10000] hover:bg-[#b00000] active:bg-[#900000] text-white text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md mt-2"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Continue with this Google Account</span>
+              </button>
+            </form>
           </div>
         )}
 
@@ -266,3 +175,4 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
     </div>
   );
 };
+

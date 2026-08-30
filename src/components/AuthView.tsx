@@ -52,7 +52,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest, 
     setSuccessMsg('');
 
     const trimmedEmail = email.trim();
-    const isOwnerEmail = trimmedEmail.toLowerCase() === 'neravatiabhigna@gmail.com';
+    const isOwnerEmail = ['neravatiabhigna@gmail.com', 'neravatiabhigna29@gmail.com'].includes(trimmedEmail.toLowerCase());
 
     if (!trimmedEmail) {
       setError('Please enter your email address');

@@ -240,8 +240,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <span className="text-xs font-black tracking-widest uppercase dark:text-[#868686] text-gray-500">
                   {product.category}
                 </span>
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                  <span className="text-amber-500 font-bold text-xs">★★★★★</span>
+                <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900/50 px-2.5 py-0.5 rounded-full">
+                  <span className="text-yellow-500 font-bold text-xs">★★★★★</span>
                   <span className="text-[11px] font-bold dark:text-[#F2F2F2] text-gray-900">4.9 (42 reviews)</span>
                 </div>
               </div>
@@ -436,7 +436,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                 {activeTab === 'reviews' && (
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2 text-amber-600 font-bold">
+                    <div className="flex items-center gap-2 text-yellow-500 font-bold">
                       <span>★ 4.9 out of 5 stars</span>
                       <span className="dark:text-[#868686] text-gray-500 font-normal">(42 buyer reviews)</span>
                     </div>
@@ -456,7 +456,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             {/* Action Buttons: Add to Bag, Buy Now (below Add to Bag) */}
             {userRole === 'guest' && (
               <div className="mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-amber-400 text-lg shrink-0">lock</span>
+                <span className="material-symbols-outlined text-[#D10000] text-lg shrink-0">lock</span>
                 <div className="text-[11px] leading-tight text-neutral-300">
                   <p className="font-bold text-white">Guest Viewing Mode</p>
                   <p className="text-neutral-400">All photos and specs are visible. Sign in to book & reserve your pair.</p>
