@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   
   return {
     plugins: [react(), tailwindcss()],
-    base: '/',  // Critical for Render deployment
+    base: '/',  // Standard absolute base for Express server and root deployments
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
