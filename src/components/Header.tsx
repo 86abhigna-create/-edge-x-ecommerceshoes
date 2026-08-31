@@ -299,32 +299,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* You / Profile / Account Badge */}
-          <button
-            onClick={() => {
-              if (userRole === 'owner') {
-                setActiveTab('owner-dashboard');
-              } else if (userRole === 'customer') {
-                setActiveTab('customer-dashboard');
-              } else {
-                onOpenAuthModal();
-              }
-            }}
-            title={userRole === 'owner' ? 'Owner Dashboard (You)' : userRole === 'customer' ? 'Your Profile & Account (You)' : 'You • Sign In / Profile'}
-            className="dark:bg-[#F2F2F2] bg-black dark:text-[#0D0D0D] text-white px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 rounded-full hover:bg-[#D10000] hover:text-white dark:hover:bg-[#D10000] dark:hover:text-white transition-colors shadow-xs cursor-pointer select-none"
-          >
-            <span className="material-symbols-outlined notranslate text-base" translate="no">
-              {userRole === 'owner' ? 'admin_panel_settings' : 'person'}
-            </span>
-            <span className="font-black tracking-wide">
-              {userRole === 'owner' ? 'You (Owner)' : userRole === 'customer' ? 'You' : 'You'}
-            </span>
-            {userRole === 'guest' ? (
-              <span className="hidden sm:inline text-[9px] font-normal opacity-80">(Sign In)</span>
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            )}
-          </button>
+
         </div>
       </div>
 

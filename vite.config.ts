@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   
   return {
     plugins: [react(), tailwindcss()],
-    base: '/',  // Standard absolute base for Express server and root deployments
+    base: '',  // Relative base allows loading assets correctly whether accessed from root, direct URL paste, or subpaths
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

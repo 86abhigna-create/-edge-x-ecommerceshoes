@@ -16,6 +16,7 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
   isLoading = false,
 }) => {
   const [customEmail, setCustomEmail] = useState('');
+  const [customPassword, setCustomPassword] = useState('');
   const [customName, setCustomName] = useState('');
   const [customError, setCustomError] = useState('');
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
@@ -35,8 +36,17 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
       setCustomError('Please enter a valid email address (e.g. yourname@gmail.com)');
       return;
     }
+    if (!customPassword.trim()) {
+      setCustomError('Please enter your password');
+      return;
+    }
 
     const isOwner = ['neravatiabhigna@gmail.com', 'neravatiabhigna29@gmail.com'].includes(trimmed.toLowerCase());
+    if (isOwner && customPassword !== 'Bhuvi@2006') {
+      setCustomError('Invalid password for Owner account (neravatiabhigna@gmail.com). Access denied.');
+      return;
+    }
+
     const fallbackName = customName.trim() || (trimmed.split('@')[0]);
 
     setSelectedEmail(trimmed);
@@ -131,6 +141,22 @@ export const GoogleAccountChooserModal: React.FC<GoogleAccountChooserModalProps>
                   }}
                   className="w-full bg-neutral-950 border border-neutral-700 text-white placeholder:text-neutral-500 px-3.5 py-2.5 rounded-lg text-xs focus:outline-none focus:border-red-500 transition-colors"
                   autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-neutral-400 mb-1">
+                  Enter Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={customPassword}
+                  onChange={(e) => {
+                    setCustomPassword(e.target.value);
+                    if (customError) setCustomError('');
+                  }}
+                  className="w-full bg-neutral-950 border border-neutral-700 text-white placeholder:text-neutral-500 px-3.5 py-2.5 rounded-lg text-xs focus:outline-none focus:border-red-500 transition-colors"
                 />
               </div>
 
