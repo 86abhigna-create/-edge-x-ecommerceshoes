@@ -10,10 +10,10 @@ export const ProfileView: React.FC = () => {
         {/* Profile Info Card */}
         <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 md:col-span-1 shadow-xs">
           <div className="w-20 h-20 bg-[#D10000] dark:text-[#F2F2F2] text-gray-900 rounded-full flex items-center justify-center text-2xl font-black mx-auto mb-4">
-            AV
+            EX
           </div>
-          <h3 className="text-center font-bold text-lg dark:text-[#F2F2F2] text-gray-900">Alex Vance</h3>
-          <p className="text-center text-xs dark:text-[#868686] text-gray-500 mb-4">alex.vance@edgex.com</p>
+          <h3 className="text-center font-bold text-lg dark:text-[#F2F2F2] text-gray-900">EDGEX</h3>
+          <p className="text-center text-xs dark:text-[#868686] text-gray-500 mb-4">member@edgex.studio</p>
           <div className="border-t dark:border-[#262626] border-gray-200 pt-4 space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="dark:text-[#868686] text-gray-500">Membership Tier</span>
@@ -31,7 +31,7 @@ export const ProfileView: React.FC = () => {
           <div>
             <h4 className="font-bold text-sm dark:text-[#F2F2F2] text-gray-900 uppercase tracking-wider mb-3">Saved Shipping Address</h4>
             <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 text-xs space-y-1 border dark:border-[#262626] border-gray-200">
-              <p className="font-bold dark:text-[#F2F2F2] text-gray-900">Alex Vance</p>
+              <p className="font-bold dark:text-[#F2F2F2] text-gray-900">EDGEX</p>
               <p>742 Evergreen Terrace</p>
               <p>New York, NY 10001</p>
               <p>United States</p>

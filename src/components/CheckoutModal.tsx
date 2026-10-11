@@ -27,7 +27,7 @@ interface AddressOption {
 const addressToOption = (addr: Address): AddressOption => ({
   id: addr.id,
   label: addr.type === 'shipping' ? 'Shipping Address' : 'Billing Address',
-  fullName: addr.fullName || addr.full_name || 'Alex Vance',
+  fullName: addr.fullName || addr.full_name || 'EDGEX',
   street: addr.street || '',
   apartment: addr.apartment || '',
   city: addr.city || '',
@@ -102,7 +102,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [addressForm, setAddressForm] = useState<AddressOption>({
     id: 'addr-custom',
     label: 'New Delivery Destination',
-    fullName: 'Alex Vance',
+    fullName: 'EDGEX',
     street: '',
     apartment: '',
     city: '',
@@ -121,7 +121,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       {
         id: 'addr-1',
         label: 'Primary Residence (Home)',
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         street: '742 Evergreen Terrace',
         apartment: 'Suite 4B',
         city: 'New York',
@@ -133,7 +133,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       {
         id: 'addr-2',
         label: 'EDGE Design Studio (Office)',
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         street: '120 Broadway Ave',
         apartment: 'Floor 18',
         city: 'New York',
@@ -183,10 +183,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>('upi');
 
   // Specific Payment Details
-  const [upiId, setUpiId] = useState('alex.vance@okaxis');
+  const [upiId, setUpiId] = useState('edgex@okaxis');
   const [upiApp, setUpiApp] = useState<'gpay' | 'phonepe' | 'paytm' | 'bhim'>('gpay');
   const [cardDetails, setCardDetails] = useState({
-    name: 'Alex Vance',
+    name: 'EDGEX',
     number: '4242 •••• •••• 4242',
     exp: '08/28',
     cvv: '123',
@@ -414,7 +414,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         status: 'Processing',
         paymentMethod: pMethodLabel,
         shippingAddress: {
-          fullName: finalAddr.fullName || 'Alex Vance',
+          fullName: finalAddr.fullName || 'EDGEX',
           street: fullStreet,
           apartment: finalAddr.apartment || '',
           city: finalAddr.city,
@@ -804,7 +804,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       setAddressForm({
                         id: 'addr-new',
                         label: 'New Delivery Address',
-                        fullName: 'Alex Vance',
+                        fullName: 'EDGEX',
                         street: '',
                         apartment: '',
                         city: '',
@@ -1320,7 +1320,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         value={upiId}
                         onChange={(e) => setUpiId(e.target.value)}
                         className="w-full px-3 py-2 border dark:border-[#262626] border-gray-200 rounded font-mono focus:border-[#D10000] outline-none"
-                        placeholder="e.g. alex@okaxis"
+                        placeholder="e.g. edgex@okaxis"
                       />
                     </div>
                   </div>

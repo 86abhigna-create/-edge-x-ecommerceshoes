@@ -119,7 +119,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest, 
   };
 
   return (
-    <div className="min-h-screen dark:bg-[#0D0D0D] bg-neutral-950 flex flex-col items-center justify-center p-4 sm:p-6 font-['Inter',sans-serif] relative overflow-hidden">
+    <div className="w-full min-h-[460px] dark:bg-[#0D0D0D] bg-neutral-950 flex flex-col items-center justify-center p-3 sm:p-6 font-['Inter',sans-serif] relative overflow-hidden rounded-2xl">
       {/* Dynamic Background Glow Elements */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -236,7 +236,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onContinueAsGuest, 
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full bg-[#0D0D0D] border border-neutral-800 text-white pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-neutral-600"
-                  placeholder="e.g. Alex Vance"
+                  placeholder="e.g. EDGEX"
                   autoComplete="name"
                 />
               </div>

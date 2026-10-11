@@ -6,6 +6,8 @@ interface ProductDetailModalProps {
   onClose: () => void;
   onAddToCart: (product: Product, size: string, quantity: number, color?: string) => void;
   onAddToWishlist: (product: Product) => void;
+  onToggleWishlist?: (product: Product) => void;
+  isInWishlist?: boolean;
   onBuyNow?: (product: Product, size: string, quantity: number, color?: string) => void;
   userRole?: 'customer' | 'owner' | 'guest';
   onRequireLogin?: () => void;
@@ -16,6 +18,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   onAddToCart,
   onAddToWishlist,
+  onToggleWishlist,
+  isInWishlist = false,
   onBuyNow,
   userRole = 'customer',
   onRequireLogin,
@@ -31,6 +35,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'reviews' | 'shipping'>('details');
   const [addedAnimation, setAddedAnimation] = useState<boolean>(false);
   const [wishlistAdded, setWishlistAdded] = useState<boolean>(false);
+  const [wishlistToast, setWishlistToast] = useState<string | null>(null);
+  const [stockWarning, setStockWarning] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (product) {
+      setSelectedColor(product.colors && product.colors.length > 0 ? product.colors[0] : (product.colorway || 'Standard'));
+      setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'US 9');
+      setQuantity(1);
+      setActiveImageIndex(0);
+      setStockWarning(null);
+      setWishlistToast(null);
+    }
+  }, [product?.id]);
 
   if (!product) return null;
 
@@ -61,9 +78,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const isLowStock = Boolean(currentVariantStock > 0 && currentVariantStock <= 3);
 
   // Delivery date calculation
-  const today = new Date();
-  const deliveryStart = new Date(today.setDate(today.getDate() + 3)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const deliveryEnd = new Date(today.setDate(today.getDate() + 2)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const deliveryStart = new Date(Date.now() + 3 * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const deliveryEnd = new Date(Date.now() + 5 * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   const handleAddToCartClick = () => {
     if (userRole === 'guest') {
@@ -77,11 +93,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     const colorToUse = currentColor || availableColors[0] || product.colorway;
 
     if (isOutOfStock) {
-      alert(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+      setStockWarning(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+      setTimeout(() => setStockWarning(null), 3500);
       return;
     }
     if (quantity > currentVariantStock) {
-      alert(`Only ${currentVariantStock} units available in stock for this variant.`);
+      setStockWarning(`Only ${currentVariantStock} units available in stock for this variant.`);
+      setTimeout(() => setStockWarning(null), 3500);
       return;
     }
     onAddToCart(product, sizeToUse, quantity, colorToUse);
@@ -103,7 +121,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     const colorToUse = currentColor || availableColors[0] || product.colorway;
 
     if (isOutOfStock) {
-      alert(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+      setStockWarning(`The ${colorToUse} in size ${sizeToUse} is currently OUT OF STOCK.`);
+      setTimeout(() => setStockWarning(null), 3500);
       return;
     }
     if (onBuyNow) {
@@ -115,15 +134,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   const handleWishlistClick = () => {
-    if (userRole === 'guest') {
-      if (onRequireLogin) {
-        onRequireLogin();
-      }
-      return;
+    if (!product) return;
+    if (onToggleWishlist) {
+      onToggleWishlist(product);
+    } else {
+      onAddToWishlist(product);
     }
-    onAddToWishlist(product);
-    setWishlistAdded(true);
-    setTimeout(() => setWishlistAdded(false), 1200);
+    const isNowAdded = !isInWishlist;
+    setWishlistAdded(isNowAdded);
+    setWishlistToast(isNowAdded ? 'Saved to Wishlist ♥' : 'Removed from Wishlist');
+    setTimeout(() => {
+      setWishlistToast(null);
+    }, 2000);
   };
 
   return (
@@ -143,6 +165,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <span className="material-symbols-outlined text-lg">close</span>
           </button>
         </div>
+
+        {stockWarning && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 text-amber-500 px-4 py-2 text-xs font-semibold flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">warning</span>
+            <span>{stockWarning}</span>
+          </div>
+        )}
 
         {/* Modal Main Content Container */}
         <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
@@ -453,17 +482,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons: Add to Bag, Buy Now (below Add to Bag) */}
-            {userRole === 'guest' && (
-              <div className="mb-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-[#D10000] text-lg shrink-0">lock</span>
-                <div className="text-[11px] leading-tight text-neutral-300">
-                  <p className="font-bold text-white">Guest Viewing Mode</p>
-                  <p className="text-neutral-400">All photos and specs are visible. Sign in to book & reserve your pair.</p>
-                </div>
-              </div>
-            )}
-
             <div className="space-y-2.5 pt-1">
               <button
                 disabled={isOutOfStock}
@@ -471,24 +489,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
                   isOutOfStock
                     ? 'dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#868686] text-gray-500 cursor-not-allowed border dark:border-[#262626] border-gray-200'
-                    : userRole === 'guest'
-                    ? 'bg-[#D10000] text-white hover:bg-[#a80000] active:scale-[0.99]'
                     : addedAnimation
                     ? 'bg-emerald-600 text-white'
                     : 'bg-[#D10000] text-white hover:bg-[#a80000] active:scale-[0.99]'
                 }`}
               >
                 <span className="material-symbols-outlined text-base">
-                  {isOutOfStock ? 'block' : userRole === 'guest' ? 'login' : 'shopping_bag'}
+                  {isOutOfStock ? 'block' : 'bookmark_add'}
                 </span>
                 <span>
                   {isOutOfStock 
                     ? 'Variant Out of Stock' 
-                    : userRole === 'guest' 
-                    ? 'Sign In to Book This Pair' 
                     : addedAnimation 
                     ? 'Added to Bag ✓' 
-                    : 'Add to Bag'}
+                    : 'Book Pair (Add to Bag)'}
                 </span>
               </button>
 
@@ -501,18 +515,33 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     : 'bg-emerald-700 text-white hover:bg-emerald-800 active:scale-[0.99]'
                 }`}
               >
-                <span className="material-symbols-outlined text-base">{userRole === 'guest' ? 'login' : 'bolt'}</span>
-                <span>{userRole === 'guest' ? 'Sign In for Instant Checkout' : 'Buy Now'}</span>
+                <span className="material-symbols-outlined text-base">bolt</span>
+                <span>Buy Now</span>
               </button>
 
               <button
+                type="button"
                 onClick={handleWishlistClick}
-                className="w-full py-2.5 text-xs font-bold uppercase tracking-widest dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:bg-gray-100 transition-colors rounded-xl flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
+                className={`w-full py-2.5 text-xs font-bold uppercase tracking-widest transition-all rounded-xl flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer shadow-xs ${
+                  isInWishlist
+                    ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-950/60'
+                    : 'dark:bg-[#1a1a1a] bg-gray-50 dark:text-[#F2F2F2] text-gray-900 border dark:border-[#262626] border-gray-200 dark:hover:bg-[#262626] hover:bg-gray-100'
+                }`}
               >
-                <span className="material-symbols-outlined text-base text-red-600">
-                  {wishlistAdded ? 'favorite' : 'favorite_border'}
+                <span
+                  className="material-symbols-outlined text-base text-red-600 notranslate"
+                  translate="no"
+                  style={{ fontVariationSettings: isInWishlist ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  {isInWishlist ? 'favorite' : 'favorite_border'}
                 </span>
-                <span>{wishlistAdded ? 'Saved to Wishlist ♥' : 'Save to Wishlist'}</span>
+                <span>
+                  {wishlistToast
+                    ? wishlistToast
+                    : isInWishlist
+                    ? 'Saved in Wishlist ♥ (Click to Remove)'
+                    : 'Save to Wishlist'}
+                </span>
               </button>
             </div>
 

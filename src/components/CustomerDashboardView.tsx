@@ -143,6 +143,7 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
   const [orderSearchQuery, setOrderSearchQuery] = useState<string>('');
   const [activeOrderFilter, setActiveOrderFilter] = useState<string>('all');
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [wishlistNotice, setWishlistNotice] = useState<string | null>(null);
 
   const cartSubtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   let cartDiscount = 0;
@@ -292,7 +293,7 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
       id: 'rev-' + Date.now(),
       productId: 'p-1',
       productName: reviewProductName,
-      userName: 'Alex Vance',
+      userName: 'EDGEX',
       rating,
       comment,
       date: new Date().toLocaleDateString(),
@@ -555,11 +556,11 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
       <div className="p-3 border-t dark:border-[#262626] border-gray-200 dark:bg-[#141414] bg-gray-50/50 rounded-b-2xl">
         <div className="flex items-center gap-2 px-2 py-1.5 mb-2">
           <div className="w-7 h-7 rounded-full bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 text-xs font-black">
-            AV
+            EX
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">Alex Vance</p>
-            <p className="text-[10px] dark:text-neutral-500 text-gray-400 truncate">alex.vance@gmail.com</p>
+            <p className="text-xs font-bold dark:text-white text-gray-900 truncate">EDGEX</p>
+            <p className="text-[10px] dark:text-neutral-500 text-gray-400 truncate">member@edgex.studio</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-1.5 pt-1">
@@ -606,7 +607,7 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mt-1 font-['Bebas_Neue',sans-serif]">
-              Alex Vance
+              EDGEX
             </h1>
           </div>
         </div>
@@ -878,7 +879,7 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
             <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6">
               <h3 className="text-base font-black dark:text-[#F2F2F2] text-gray-900 mb-4">Default Shipping Address</h3>
               <div className="dark:bg-[#1a1a1a] bg-gray-50 p-4 text-xs space-y-1 border dark:border-[#262626] border-gray-200">
-                <p className="font-bold dark:text-[#F2F2F2] text-gray-900">Alex Vance</p>
+                <p className="font-bold dark:text-[#F2F2F2] text-gray-900">EDGEX</p>
                 <p>742 Evergreen Terrace</p>
                 <p>New York, NY 10001</p>
                 <p>United States</p>
@@ -1034,11 +1035,11 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
             <div className="space-y-1.5">
               <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Full Name</label>
-              <input type="text" defaultValue="Alex Vance" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
+              <input type="text" defaultValue="EDGEX" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
             </div>
             <div className="space-y-1.5">
               <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Email Address</label>
-              <input type="email" defaultValue="alex.vance@edgex.studio" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
+              <input type="email" defaultValue="member@edgex.studio" className="w-full p-3 border dark:border-[#262626] border-gray-200 dark:bg-[#0D0D0D] bg-white font-semibold dark:text-[#F2F2F2] text-gray-900" />
             </div>
             <div className="space-y-1.5">
               <label className="font-bold uppercase dark:text-[#868686] text-gray-500">Mobile Number</label>
@@ -1749,10 +1750,25 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
               <h3 className="text-xl font-black dark:text-[#F2F2F2] text-gray-900">Saved Wishlist Silhouettes</h3>
               <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">Saved sneakers, real-time availability status, current prices, and instant transfer to cart.</p>
             </div>
-            <span className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 bg-blue-50 px-3 py-1 border border-blue-200 rounded-full">
+            <span className="text-xs font-bold dark:text-[#F2F2F2] text-gray-900 bg-blue-50 dark:bg-blue-950/40 px-3 py-1 border border-blue-200 dark:border-blue-900 rounded-full">
               {wishlist.length} Saved Items
             </span>
           </div>
+
+          {wishlistNotice && (
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center justify-between animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-emerald-600">check_circle</span>
+                <span>{wishlistNotice}</span>
+              </div>
+              <button
+                onClick={() => setWishlistNotice(null)}
+                className="text-emerald-700 hover:text-emerald-900 text-xs font-extrabold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {wishlist.length === 0 ? (
             <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-xl p-12 text-center space-y-3 shadow-xs">
@@ -1839,7 +1855,8 @@ export const CustomerDashboardView: React.FC<CustomerDashboardViewProps> = ({
                             onAddToCart(p, p.sizes?.[0] || 'US 9', 1, p.colorway);
                           }
                           onRemoveWishlist(item.id);
-                          alert(`Moved "${p.name}" to your shopping bag!`);
+                          setWishlistNotice(`Moved "${p.name}" to your shopping bag!`);
+                          setTimeout(() => setWishlistNotice(null), 3000);
                         }}
                         className={`w-2/3 dark:text-[#F2F2F2] text-gray-900 py-2.5 text-xs font-bold uppercase rounded tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-xs ${
                           isOutOfStock

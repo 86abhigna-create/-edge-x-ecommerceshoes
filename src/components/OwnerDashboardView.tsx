@@ -1569,8 +1569,8 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
           <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-4 text-xs">
             <div className="flex justify-between items-center p-4 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200">
               <div>
-                <p className="font-black dark:text-[#F2F2F2] text-gray-900 text-sm">Alex Vance (VIP)</p>
-                <p className="dark:text-[#868686] text-gray-500">alex.vance@edgex.studio • +1 (555) 382-9912</p>
+                <p className="font-black dark:text-[#F2F2F2] text-gray-900 text-sm">EDGEX (VIP)</p>
+                <p className="dark:text-[#868686] text-gray-500">member@edgex.studio • +1 (555) 382-9912</p>
               </div>
               <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 font-bold">
                 Black Circle Member ($1,420 Spend)
@@ -2129,7 +2129,7 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                 color: 'bg-blue-50 text-blue-900 border-blue-200',
                 icon: 'shopping_bag',
                 title: 'New Order Received: EX-48912',
-                details: 'Customer Alex Vance placed order for Apex Vol. 1 - Carbon Black (Size US 9.5). Total: ₹15,600',
+                details: 'Customer EDGEX placed order for Apex Vol. 1 - Carbon Black (Size US 9.5). Total: ₹15,600',
                 time: '10 mins ago • Aug 8, 2026',
               },
               {
@@ -2149,7 +2149,7 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                 color: 'bg-amber-50 text-amber-900 border-amber-200',
                 icon: 'assignment_return',
                 title: 'New Return Request: Order EX-98102',
-                details: 'Customer Alex Vance submitted a return request for Apex Vol. 1. Reason: Fit / Size Adjustment.',
+                details: 'Customer EDGEX submitted a return request for Apex Vol. 1. Reason: Fit / Size Adjustment.',
                 time: '2 hours ago • Aug 8, 2026',
               },
               {
@@ -2189,7 +2189,7 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
                 color: 'bg-indigo-50 text-indigo-900 border-indigo-200',
                 icon: 'rate_review',
                 title: 'New 5-Star Review Submitted',
-                details: 'Alex Vance reviewed "Apex Runner Vol. 1": "Incredible streetwear silhouette. Italian calfskin holds up great."',
+                details: 'EDGEX reviewed "Apex Runner Vol. 1": "Incredible streetwear silhouette. Italian calfskin holds up great."',
                 time: '1 day ago • Aug 7, 2026',
               },
               {
@@ -2334,7 +2334,7 @@ export const OwnerDashboardView: React.FC<OwnerDashboardViewProps> = ({
           <div className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 p-6 space-y-4 text-xs">
             <div className="p-4 dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="font-bold dark:text-[#F2F2F2] text-gray-900">Ticket #TICK-8841 - Alex Vance</span>
+                <span className="font-bold dark:text-[#F2F2F2] text-gray-900">Ticket #TICK-8841 - EDGEX</span>
                 <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 font-bold">Resolved</span>
               </div>
               <p className="dark:text-[#868686] text-gray-500">"Inquiry regarding tracking number for Apex Vol. 1 dispatch."</p>

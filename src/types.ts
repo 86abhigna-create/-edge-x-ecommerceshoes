@@ -357,7 +357,7 @@ export interface ReviewListResponse extends PaginatedResponse<Review> {
   summary: ReviewSummary;
 }
 
-export type ActiveTab = 'shop' | 'orders' | 'cart' | 'profile' | 'owner-dashboard' | 'customer-dashboard';
+export type ActiveTab = 'shop' | 'orders' | 'cart' | 'profile' | 'owner-dashboard' | 'customer-dashboard' | 'wishlist';
 
 export interface ApiError {
   error: string;

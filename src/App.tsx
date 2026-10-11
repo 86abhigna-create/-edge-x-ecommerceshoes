@@ -14,7 +14,7 @@ import { useAuth } from './context/AuthContext';
 import { useAddToCart, useUpdateCartItem, useRemoveFromCart, useAddToWishlist, useRemoveFromWishlist, useCreateOrder, useCreateReview } from './hooks/useApi';
 
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Apply dark mode class immediately on mount
   React.useLayoutEffect(() => {
@@ -114,9 +114,9 @@ export default function App() {
     setFilterBestSellers(false);
   };
   
-  // Authentication & Authorization state - always starts on login page (guest)
+  // Authentication & Authorization state - website displays first on app load
   const [userRole, setUserRole] = useState<'customer' | 'owner' | 'guest'>('guest');
-  const [hasStartedBrowsing, setHasStartedBrowsing] = useState<boolean>(false);
+  const [hasStartedBrowsing, setHasStartedBrowsing] = useState<boolean>(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [loginPromptMsg, setLoginPromptMsg] = useState<string>('');
   const [ownerEmailInput, setOwnerEmailInput] = useState<string>('');
@@ -141,7 +141,7 @@ export default function App() {
         id: 'addr-1',
         user_id: 'user-1',
         type: 'shipping',
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         phone: '+1 (555) 019-2834',
         street: '742 Evergreen Terrace',
         apartment: 'Suite 4B',
@@ -157,7 +157,7 @@ export default function App() {
         id: 'addr-2',
         user_id: 'user-1',
         type: 'shipping',
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         phone: '+1 (555) 882-9102',
         street: '120 Broadway Ave',
         apartment: 'Floor 18',
@@ -229,7 +229,7 @@ export default function App() {
       status: 'Delivered',
       paymentMethod: 'Credit Card (•••• 4242)',
       shippingAddress: {
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         street: '742 Evergreen Terrace',
         city: 'New York',
         state: 'NY',
@@ -263,9 +263,9 @@ export default function App() {
       ],
       total: 195,
       status: 'Processing',
-      paymentMethod: 'UPI (GPAY - alex.vance@okaxis)',
+      paymentMethod: 'UPI (GPAY - edgex@okaxis)',
       shippingAddress: {
-        fullName: 'Alex Vance',
+        fullName: 'EDGEX',
         street: '742 Evergreen Terrace',
         city: 'New York',
         state: 'NY',
@@ -275,19 +275,41 @@ export default function App() {
       refundStatus: 'None',
     }
   ]);
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([
-    {
-      id: 'wish-1',
-      product: INITIAL_PRODUCTS[1],
-      dateAdded: 'Aug 5, 2026',
+  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('edgex_wishlist_v1');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load wishlist from localStorage:', e);
     }
-  ]);
+    return [
+      {
+        id: 'wish-1',
+        product: INITIAL_PRODUCTS[1],
+        dateAdded: 'Aug 5, 2026',
+      }
+    ];
+  });
+
+  // Sync wishlist to localStorage automatically
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('edgex_wishlist_v1', JSON.stringify(wishlist));
+    } catch (e) {
+      console.error('Failed to persist wishlist to localStorage:', e);
+    }
+  }, [wishlist]);
   const [reviews, setReviews] = useState<Review[]>([
     {
       id: 'rev-1',
       productId: INITIAL_PRODUCTS[0].id,
       productName: INITIAL_PRODUCTS[0].name,
-      userName: 'Alex Vance',
+      userName: 'EDGEX',
       rating: 5,
       comment: 'Incredible streetwear silhouette. The Italian calfskin and technical mesh hold up extremely well.',
       date: 'Aug 7, 2026',
@@ -406,31 +428,47 @@ export default function App() {
   };
 
   const handleAddToWishlist = (product: Product) => {
-    if (userRole === 'guest') {
-      setLoginPromptMsg('Please sign in to save items to your wishlist.');
-      setIsAuthModalOpen(true);
-      return;
-    }
-    if (wishlist.some((w) => w.product.id === product.id)) return;
-    setWishlist((prev) => [
-      {
-        id: 'wish-' + Date.now(),
-        product,
-        dateAdded: new Date().toLocaleDateString(),
-      },
-      ...prev,
-    ]);
+    if (wishlist.some((w) => w.product?.id === product.id)) return;
+    const newItem: WishlistItem = {
+      id: 'wish-' + Date.now(),
+      product,
+      dateAdded: new Date().toLocaleDateString(),
+    };
+    setWishlist((prev) => [newItem, ...prev]);
     
-    // Persist to Supabase
+    // Persist to Supabase if logged in
     if (user) {
       addToWishlistMutation.mutate(product.id);
     }
   };
 
+  const handleToggleWishlist = (product: Product) => {
+    const existingIndex = wishlist.findIndex((w) => w.product?.id === product.id);
+    if (existingIndex > -1) {
+      const itemToRemove = wishlist[existingIndex];
+      setWishlist((prev) => prev.filter((w) => w.product?.id !== product.id));
+      if (user && itemToRemove.id) {
+        removeFromWishlistMutation.mutate(itemToRemove.id);
+      }
+      return false; // Removed
+    } else {
+      const newItem: WishlistItem = {
+        id: 'wish-' + Date.now(),
+        product,
+        dateAdded: new Date().toLocaleDateString(),
+      };
+      setWishlist((prev) => [newItem, ...prev]);
+      if (user) {
+        addToWishlistMutation.mutate(product.id);
+      }
+      return true; // Added
+    }
+  };
+
   const handleRemoveWishlist = (id: string) => {
-    setWishlist((prev) => prev.filter((w) => w.id !== id));
+    setWishlist((prev) => prev.filter((w) => w.id !== id && w.product?.id !== id));
     
-    // Persist to Supabase
+    // Persist to Supabase if logged in
     if (user) {
       removeFromWishlistMutation.mutate(id);
     }
@@ -573,7 +611,7 @@ export default function App() {
             id: `addr-${Date.now()}`,
             user_id: 'user-1',
             type: 'shipping',
-            fullName: sa.fullName || 'Alex Vance',
+            fullName: sa.fullName || 'EDGEX',
             street: sa.street,
             apartment: sa.apartment || '',
             city: sa.city,
@@ -741,26 +779,10 @@ export default function App() {
       // ignore
     }
     setUserRole('guest');
-    setHasStartedBrowsing(false);
+    setHasStartedBrowsing(true);
     setActiveTab('shop');
   };
 
-  if (!hasStartedBrowsing && userRole === 'guest') {
-    return (
-      <AuthView 
-        onLogin={(role) => {
-          setUserRole(role);
-          setHasStartedBrowsing(true);
-          setActiveTab(role === 'owner' ? 'owner-dashboard' : 'shop');
-        }}
-        onContinueAsGuest={() => {
-          setUserRole('guest');
-          setHasStartedBrowsing(true);
-          setActiveTab('shop');
-        }}
-      />
-    );
-  }
   return (
     <div className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 min-h-screen flex flex-col font-['Inter',sans-serif] pt-16 pb-20 md:pb-0">
       {/* Top App Bar */}
@@ -782,21 +804,21 @@ export default function App() {
 
       {/* Guest Mode Notice Banner */}
       {userRole === 'guest' && (
-        <div className="bg-neutral-900 border-b border-neutral-800 text-neutral-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="bg-white border-b border-gray-200 text-gray-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shadow-xs">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D10000] animate-pulse" />
             <span>
-              <strong className="text-white">Guest Catalog Access:</strong> You can view all high-res product photos, colorways, and specs. Sign in to book & reserve your pair.
+              <strong className="text-gray-900 font-bold">Full Catalog Browsing:</strong> Explore high-res photos, colorways, and specifications freely.
             </span>
           </div>
           <button
             onClick={() => {
-              setLoginPromptMsg('Sign in with your email to book sneakers and unlock bag checkout.');
+              setLoginPromptMsg('Sign in or register your account to manage orders, wishlist, and bag.');
               setIsAuthModalOpen(true);
             }}
-            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
+            className="px-3 py-1 bg-[#D10000] hover:bg-red-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
           >
-            Sign In with Email
+            Sign In / Register
           </button>
         </div>
       )}
@@ -804,7 +826,7 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[520px] dark:bg-[#0e0e0e] bg-[#121212] flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-xl mx-0 md:mx-4 mt-0 md:mt-4 group border dark:border-white/5 border-black/5">
+            <section className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[520px] bg-white border border-gray-200 flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-sm mx-0 md:mx-4 mt-0 md:mt-4 group">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
@@ -1281,6 +1303,28 @@ export default function App() {
                               {shoe.badge}
                             </span>
                           )}
+                          {/* Quick Wishlist Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleWishlist(shoe);
+                            }}
+                            title={wishlist.some((w) => w.product?.id === shoe.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                            className="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full dark:bg-black/80 bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-all z-20 text-red-600 cursor-pointer"
+                          >
+                            <span
+                              className="material-symbols-outlined text-sm sm:text-base notranslate"
+                              translate="no"
+                              style={{
+                                fontVariationSettings: wishlist.some((w) => w.product?.id === shoe.id)
+                                  ? "'FILL' 1"
+                                  : "'FILL' 0",
+                              }}
+                            >
+                              {wishlist.some((w) => w.product?.id === shoe.id) ? 'favorite' : 'favorite_border'}
+                            </span>
+                          </button>
                           <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <button
                               type="button"
@@ -1322,7 +1366,7 @@ export default function App() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (userRole === 'guest') {
-                                setLoginPromptMsg('Please sign in with your email to add items to your shopping bag and book your pair.');
+                                setLoginPromptMsg('Please sign in or create an account to book your pair and add to bag.');
                                 setIsAuthModalOpen(true);
                                 return;
                               }
@@ -1330,10 +1374,10 @@ export default function App() {
                               setIsCartOpen(true);
                             }}
                             className="w-full bg-[#D10000] hover:bg-[#a80000] text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                            title={userRole === 'guest' ? 'Sign in to add to bag' : 'Add silhouette directly to your shopping bag'}
+                            title="Book this pair and add to your bag"
                           >
-                            <span className="material-symbols-outlined text-xs">{userRole === 'guest' ? 'login' : 'shopping_bag'}</span>
-                            <span>{userRole === 'guest' ? 'Sign In to Book' : 'Add to Bag'}</span>
+                            <span className="material-symbols-outlined text-xs">bookmark_add</span>
+                            <span>Book Pair</span>
                           </button>
 
                           <button
@@ -1341,7 +1385,7 @@ export default function App() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (userRole === 'guest') {
-                                setLoginPromptMsg('Please sign in with your email to book and buy this silhouette.');
+                                setLoginPromptMsg('Please sign in or log in to complete your purchase.');
                                 setIsAuthModalOpen(true);
                                 return;
                               }
@@ -1349,10 +1393,10 @@ export default function App() {
                               setIsCheckoutOpen(true);
                             }}
                             className="w-full bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                            title={userRole === 'guest' ? 'Sign in to buy now' : 'Buy now and proceed directly to instant checkout'}
+                            title="Buy now and proceed to instant checkout"
                           >
-                            <span className="material-symbols-outlined text-xs">{userRole === 'guest' ? 'login' : 'bolt'}</span>
-                            <span>{userRole === 'guest' ? 'Sign In to Buy' : 'Buy Now'}</span>
+                            <span className="material-symbols-outlined text-xs">bolt</span>
+                            <span>Buy Now</span>
                           </button>
                         </div>
                       </div>
@@ -1360,6 +1404,266 @@ export default function App() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* Best Sellers Section */}
+            <section className="w-full px-5 md:px-16 mb-16 border-t dark:border-[#262626] border-gray-200 pt-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="material-symbols-outlined text-amber-500 text-xl" translate="no">trending_up</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-500">
+                      Most In Demand
+                    </span>
+                  </div>
+                  <h3 className="text-[34px] md:text-[44px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal leading-none">
+                    Best Sellers
+                  </h3>
+                  <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">
+                    The highest-rated and fastest-moving silhouettes from our signature collections.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory('Best Sellers');
+                    const el = document.getElementById('featured-drops');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-xs font-bold uppercase tracking-wider text-[#D10000] hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <span>View All Best Sellers</span>
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+              </div>
+
+              {/* Best Sellers Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {products
+                  .filter((p) => p.published !== false && (p.badge === 'Limited' || p.price > 200 || p.featured))
+                  .slice(0, 4)
+                  .map((shoe) => (
+                    <div
+                      key={`bestseller-${shoe.id}`}
+                      onClick={() => setSelectedProduct(shoe)}
+                      className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 flex flex-col justify-between group hover:border-[#D10000] transition-all cursor-pointer shadow-xs hover:shadow-md"
+                    >
+                      <div>
+                        <div className="aspect-square w-full dark:bg-white bg-gray-50 mb-3 flex items-center justify-center p-3 relative overflow-hidden rounded-xl border dark:border-gray-200 border-gray-200">
+                          <img
+                            src={shoe.image}
+                            alt={shoe.altText || shoe.name}
+                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                          />
+                          <span className="absolute top-2 left-2 bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-md shadow-xs z-10 flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-[11px] leading-none">star</span>
+                            <span>Best Seller</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleWishlist(shoe);
+                            }}
+                            title={wishlist.some((w) => w.product?.id === shoe.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                            className="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full dark:bg-black/80 bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-all z-20 text-red-600 cursor-pointer"
+                          >
+                            <span
+                              className="material-symbols-outlined text-sm sm:text-base notranslate"
+                              translate="no"
+                              style={{
+                                fontVariationSettings: wishlist.some((w) => w.product?.id === shoe.id)
+                                  ? "'FILL' 1"
+                                  : "'FILL' 0",
+                              }}
+                            >
+                              {wishlist.some((w) => w.product?.id === shoe.id) ? 'favorite' : 'favorite_border'}
+                            </span>
+                          </button>
+                        </div>
+                        <p className="text-[10px] dark:text-[#868686] text-gray-500 uppercase tracking-widest font-bold">
+                          {shoe.category}
+                        </p>
+                        <h4 className="text-sm sm:text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight mt-0.5 truncate">
+                          {shoe.name}
+                        </h4>
+                        <p className="text-[11px] dark:text-[#767680] text-gray-500 line-clamp-1 mt-1">
+                          {shoe.colorway}
+                        </p>
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between gap-2">
+                        <span className="text-sm font-extrabold dark:text-[#F2F2F2] text-gray-900">
+                          ₹{shoe.price.toLocaleString('en-IN')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (userRole === 'guest') {
+                              setLoginPromptMsg('Please sign in to book your pair.');
+                              setIsAuthModalOpen(true);
+                              return;
+                            }
+                            handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
+                            setIsCartOpen(true);
+                          }}
+                          className="bg-[#D10000] hover:bg-[#a80000] text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-xs">shopping_bag</span>
+                          <span>Add to Bag</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </section>
+
+            {/* Deals For You Section */}
+            <section className="w-full px-5 md:px-16 mb-16 border-t dark:border-[#262626] border-gray-200 pt-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="material-symbols-outlined text-[#D10000] text-xl" translate="no">local_offer</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-[#D10000]">
+                      Special Promotions & Member Pricing
+                    </span>
+                  </div>
+                  <h3 className="text-[34px] md:text-[44px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal leading-none">
+                    Deals For You
+                  </h3>
+                  <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">
+                    Limited-time exclusive price drops on certified architectural silhouettes.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-[#D10000] text-[10px] font-bold uppercase rounded-full tracking-wider">
+                    Extra 15% Off with Code: EDGEX15
+                  </span>
+                </div>
+              </div>
+
+              {/* Deals For You Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {products
+                  .filter((p) => p.published !== false)
+                  .slice(0, 3)
+                  .map((shoe, idx) => {
+                    const discountRate = idx === 0 ? 25 : idx === 1 ? 20 : 15;
+                    const discountedPrice = Math.round(shoe.price * (1 - discountRate / 100));
+                    return (
+                      <div
+                        key={`deal-${shoe.id}`}
+                        onClick={() => setSelectedProduct(shoe)}
+                        className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 flex flex-col justify-between group hover:border-[#D10000] transition-all cursor-pointer relative overflow-hidden shadow-xs hover:shadow-lg"
+                      >
+                        {/* Discount Banner Tag */}
+                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+                          <span className="bg-[#D10000] text-white text-[10px] font-black px-2.5 py-1 uppercase tracking-wider rounded-md shadow-sm">
+                            {discountRate}% OFF DEAL
+                          </span>
+                          <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wide rounded-md shadow-xs">
+                            Limited Drop
+                          </span>
+                        </div>
+
+                        {/* Product Image from Featured Drop */}
+                        <div className="aspect-[4/3] w-full dark:bg-white bg-gray-50 mb-4 flex items-center justify-center p-4 relative overflow-hidden rounded-xl border dark:border-gray-200 border-gray-200">
+                          <img
+                            src={shoe.image}
+                            alt={shoe.altText || shoe.name}
+                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-108 transition-transform duration-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleWishlist(shoe);
+                            }}
+                            title={wishlist.some((w) => w.product?.id === shoe.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                            className="absolute top-2 right-2 w-8 h-8 rounded-full dark:bg-black/80 bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-all z-20 text-red-600 cursor-pointer"
+                          >
+                            <span
+                              className="material-symbols-outlined text-base notranslate"
+                              translate="no"
+                              style={{
+                                fontVariationSettings: wishlist.some((w) => w.product?.id === shoe.id)
+                                  ? "'FILL' 1"
+                                  : "'FILL' 0",
+                              }}
+                            >
+                              {wishlist.some((w) => w.product?.id === shoe.id) ? 'favorite' : 'favorite_border'}
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Product Details */}
+                        <div>
+                          <div className="flex items-center justify-between text-[10px] uppercase font-bold dark:text-[#868686] text-gray-500">
+                            <span>{shoe.category}</span>
+                            <span className="text-emerald-500 font-extrabold">In Stock</span>
+                          </div>
+                          <h4 className="text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight mt-1">
+                            {shoe.name}
+                          </h4>
+                          <p className="text-xs dark:text-[#868686] text-gray-500 line-clamp-1 mt-1">
+                            {shoe.colorway} • Engineered Leather
+                          </p>
+                        </div>
+
+                        {/* Deal Price & Action */}
+                        <div className="mt-4 pt-3 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-xs line-through text-gray-500">
+                              ₹{shoe.price.toLocaleString('en-IN')}
+                            </span>
+                            <span className="text-base font-black text-[#D10000]">
+                              ₹{discountedPrice.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (userRole === 'guest') {
+                                  setLoginPromptMsg('Please sign in to claim this deal and book your pair.');
+                                  setIsAuthModalOpen(true);
+                                  return;
+                                }
+                                handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
+                                setIsCartOpen(true);
+                              }}
+                              className="bg-[#D10000] hover:bg-[#a80000] text-white px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-xs">shopping_bag</span>
+                              <span>Claim Deal</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (userRole === 'guest') {
+                                  setLoginPromptMsg('Please sign in to checkout instantly.');
+                                  setIsAuthModalOpen(true);
+                                  return;
+                                }
+                                handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
+                                setIsCheckoutOpen(true);
+                              }}
+                              className="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-xs">bolt</span>
+                              <span>Buy Now</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             </section>
 
             {/* Features / Benefits Section */}
@@ -1559,9 +1863,9 @@ export default function App() {
           </>
         )}
 
-        {(activeTab === 'customer-dashboard' || activeTab === 'profile' || activeTab === 'orders') && (
+        {(activeTab === 'customer-dashboard' || activeTab === 'profile' || activeTab === 'orders' || activeTab === 'wishlist') && (
           <CustomerDashboardView
-            initialSubTab={activeTab === 'orders' ? 'orders' : activeTab === 'profile' ? 'profile' : 'overview'}
+            initialSubTab={activeTab === 'wishlist' ? 'wishlist' : activeTab === 'orders' ? 'orders' : activeTab === 'profile' ? 'profile' : 'overview'}
             orders={orders}
             wishlist={wishlist}
             reviews={reviews}
@@ -1688,7 +1992,14 @@ export default function App() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} cartCount={cartCount} userRole={userRole} onOpenAuthModal={() => setIsAuthModalOpen(true)} />
+      <BottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        cartCount={cartCount}
+        wishlistCount={wishlist.length}
+        userRole={userRole}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+      />
 
       {/* Authentication / Authorization Modal Dialog */}
       {isAuthModalOpen && (
@@ -1715,7 +2026,9 @@ export default function App() {
       <MenuDrawer
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
+        activeTab={activeTab}
         setActiveTab={setActiveTab}
+        selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
         onOpenAuthModal={() => {
           setLoginPromptMsg('');
@@ -1723,6 +2036,17 @@ export default function App() {
         }}
         userRole={userRole}
         onLogout={handleLogout}
+        wishlistCount={wishlist.length}
+        cartCount={cartCount}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenWishlist={() => setActiveTab('wishlist')}
+        onOpenOrders={() => {
+          if (userRole === 'owner') {
+            setActiveTab('owner-dashboard');
+          } else {
+            setActiveTab('orders');
+          }
+        }}
       />
 
       <CartDrawer
@@ -1743,27 +2067,31 @@ export default function App() {
         }}
       />
 
-      <ProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
-        onAddToWishlist={handleAddToWishlist}
-        onBuyNow={(prod, size, qty, color) => {
-          if (userRole === 'guest') {
-            setLoginPromptMsg('Please sign in with your email to book and purchase this silhouette.');
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={handleAddToCart}
+          onAddToWishlist={handleAddToWishlist}
+          onToggleWishlist={handleToggleWishlist}
+          isInWishlist={wishlist.some((w) => w.product?.id === selectedProduct.id)}
+          onBuyNow={(prod, size, qty, color) => {
+            if (userRole === 'guest') {
+              setLoginPromptMsg('Please sign in with your email to book and purchase this silhouette.');
+              setIsAuthModalOpen(true);
+              return;
+            }
+            handleAddToCart(prod, size, qty, color);
+            setSelectedProduct(null);
+            setIsCheckoutOpen(true);
+          }}
+          userRole={userRole}
+          onRequireLogin={() => {
+            setLoginPromptMsg('Please sign in with your email to book this silhouette and reserve your pair.');
             setIsAuthModalOpen(true);
-            return;
-          }
-          handleAddToCart(prod, size, qty, color);
-          setSelectedProduct(null);
-          setIsCheckoutOpen(true);
-        }}
-        userRole={userRole}
-        onRequireLogin={() => {
-          setLoginPromptMsg('Please sign in with your email to book this silhouette and reserve your pair.');
-          setIsAuthModalOpen(true);
-        }}
-      />
+          }}
+        />
+      )}
 
       <CheckoutModal
         isOpen={isCheckoutOpen}

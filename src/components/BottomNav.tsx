@@ -5,11 +5,12 @@ interface BottomNavProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   cartCount: number;
+  wishlistCount?: number;
   userRole: 'customer' | 'owner' | 'guest';
   onOpenAuthModal: () => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, cartCount, userRole, onOpenAuthModal }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, cartCount, wishlistCount = 0, userRole, onOpenAuthModal }) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center h-16 dark:bg-[#0D0D0D] bg-white border-t dark:border-[#262626] border-gray-200 md:hidden pb-[env(safe-area-inset-bottom,0px)] shadow-lg notranslate" translate="no">
       <button
@@ -32,6 +33,32 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, c
           storefront
         </span>
         <span className="text-[10px] font-bold tracking-widest uppercase">Shop</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab('wishlist')}
+        className={`flex flex-col items-center justify-center w-full h-full transition-all relative select-none notranslate ${
+          activeTab === 'wishlist'
+            ? 'text-[#D10000] font-black'
+            : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
+        }`}
+        translate="no"
+      >
+        <div className="relative leading-none mb-1 flex items-center justify-center notranslate" translate="no">
+          <span
+            className="material-symbols-outlined notranslate text-2xl"
+            translate="no"
+            style={{ fontVariationSettings: activeTab === 'wishlist' ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            favorite
+          </span>
+          {wishlistCount > 0 && (
+            <span className="absolute -top-1.5 -right-2.5 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
+              {wishlistCount > 9 ? '9+' : wishlistCount}
+            </span>
+          )}
+        </div>
+        <span className="text-[10px] font-bold tracking-widest uppercase">Wishlist</span>
       </button>
 
       {userRole !== 'owner' && (
@@ -105,10 +132,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, c
           translate="no"
           style={{ fontVariationSettings: (activeTab === 'profile' || activeTab === 'owner-dashboard' || activeTab === 'customer-dashboard') ? "'FILL' 1" : "'FILL' 0" }}
         >
-          {userRole === 'owner' ? 'admin_panel_settings' : 'person'}
+          {userRole === 'owner' ? 'admin_panel_settings' : userRole === 'guest' ? 'login' : 'person'}
         </span>
         <span className="text-[10px] font-bold tracking-widest uppercase">
-          {userRole === 'owner' ? 'Admin' : 'You'}
+          {userRole === 'owner' ? 'Admin' : userRole === 'guest' ? 'Sign In' : 'You'}
         </span>
       </button>
     </nav>

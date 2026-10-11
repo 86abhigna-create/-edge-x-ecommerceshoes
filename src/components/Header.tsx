@@ -99,11 +99,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 sm:gap-6">
           <button
             onClick={onOpenMenu}
-            aria-label="Menu"
-            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors p-2 md:hidden flex items-center justify-center min-w-[40px] min-h-[40px]"
+            aria-label="Open Side Menu"
+            title="Open Side Menu (Orders, Wishlist, Bag, Collections)"
+            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors p-2 flex items-center gap-1.5 min-w-[40px] min-h-[40px] rounded-lg dark:hover:bg-[#1a1a1a] hover:bg-gray-100 cursor-pointer"
           >
             <span className="material-symbols-outlined notranslate text-2xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
               menu
+            </span>
+            <span className="hidden lg:inline text-[11px] font-black uppercase tracking-wider">
+              Menu
             </span>
           </button>
 
@@ -122,33 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
             </h1>
             {/* Desktop Navigation Links */}
             <nav className="hidden sm:flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setActiveTab('shop');
-                  onSelectCategory('All Shoes');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`text-xs font-extrabold uppercase tracking-widest transition-colors ${
-                  activeTab === 'shop' ? 'text-[#D10000]' : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
-                }`}
-              >
-                Home
-              </button>
-              {userRole !== 'owner' && (
-                <button
-                  onClick={() => {
-                    setActiveTab('orders');
-                  }}
-                  className={`text-xs font-extrabold uppercase tracking-widest transition-colors flex items-center gap-1 ${
-                    activeTab === 'orders'
-                      ? 'text-[#D10000]'
-                      : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">package_2</span>
-                  <span>Orders</span>
-                </button>
-              )}
+
               <button
                 onClick={() => {
                   if (userRole === 'customer') {
@@ -227,8 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
 
-          {/* Language Selector */}
-          <LanguageSelector />
+
 
           {/* Dark Mode Toggle */}
           <button
@@ -243,44 +220,9 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
 
-          {/* Wishlist button */}
-          <button
-            onClick={() => {
-              if (userRole === 'customer') {
-                setActiveTab('customer-dashboard');
-              } else if (userRole === 'owner') {
-                setActiveTab('owner-dashboard');
-              } else {
-                onOpenAuthModal();
-              }
-            }}
-            title="Wishlist"
-            className="hidden sm:flex items-center dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] p-2 relative min-w-[36px] min-h-[36px] justify-center notranslate"
-            translate="no"
-          >
-            <span className="material-symbols-outlined notranslate text-xl" translate="no">favorite</span>
-            {wishlistCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-[#D10000] dark:text-[#F2F2F2] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center notranslate" translate="no">
-                {wishlistCount}
-              </span>
-            )}
-          </button>
 
-          {/* Quick Orders Button */}
-          <button
-            onClick={() => {
-              if (userRole === 'owner') {
-                setActiveTab('owner-dashboard');
-              } else {
-                setActiveTab('orders');
-              }
-            }}
-            title="View Orders & Purchase Records"
-            className="flex items-center dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] p-2 relative min-w-[36px] min-h-[36px] justify-center transition-colors notranslate"
-            translate="no"
-          >
-            <span className="material-symbols-outlined notranslate text-2xl" translate="no">package_2</span>
-          </button>
+
+
 
           {/* Shopping Bag */}
           <button
