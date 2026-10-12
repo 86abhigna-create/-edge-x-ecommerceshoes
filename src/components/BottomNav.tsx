@@ -4,139 +4,115 @@ import { ActiveTab } from '../types';
 interface BottomNavProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  cartCount: number;
-  wishlistCount?: number;
   userRole: 'customer' | 'owner' | 'guest';
   onOpenAuthModal: () => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, cartCount, wishlistCount = 0, userRole, onOpenAuthModal }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({
+  activeTab,
+  setActiveTab,
+  userRole,
+  onOpenAuthModal,
+}) => {
+  const isHomeActive = activeTab === 'shop';
+  const isDashboardActive = activeTab === 'customer-dashboard' || activeTab === 'owner-dashboard';
+  const isAccountActive = activeTab === 'profile';
+
+  const handleHomeClick = () => {
+    setActiveTab('shop');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDashboardClick = () => {
+    if (userRole === 'owner') {
+      setActiveTab('owner-dashboard');
+    } else if (userRole === 'customer') {
+      setActiveTab('customer-dashboard');
+    } else {
+      onOpenAuthModal();
+    }
+  };
+
+  const handleAccountClick = () => {
+    if (userRole === 'guest') {
+      onOpenAuthModal();
+    } else {
+      setActiveTab('profile');
+    }
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-around items-center h-16 dark:bg-[#0D0D0D] bg-white border-t dark:border-[#262626] border-gray-200 md:hidden pb-[env(safe-area-inset-bottom,0px)] shadow-lg notranslate" translate="no">
+    <nav
+      aria-label="Bottom Navigation"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md border-t border-gray-200 dark:border-[#262626] shadow-[0_-2px_12px_rgba(0,0,0,0.06)] h-14 sm:h-16 flex items-center justify-around px-4 sm:px-6 pb-[env(safe-area-inset-bottom,0px)] notranslate select-none"
+      translate="no"
+    >
+      {/* 1. Home Logo Only */}
       <button
-        onClick={() => {
-          setActiveTab('shop');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        className={`flex flex-col items-center justify-center w-full h-full transition-all select-none notranslate ${
-          activeTab === 'shop'
-            ? 'text-[#D10000] font-black'
-            : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
+        type="button"
+        onClick={handleHomeClick}
+        aria-label="Home"
+        title="Home"
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+          isHomeActive
+            ? 'text-[#D10000] scale-110'
+            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
         }`}
-        translate="no"
       >
-        <span
-          className="material-symbols-outlined notranslate text-2xl leading-none mb-1"
-          translate="no"
-          style={{ fontVariationSettings: activeTab === 'shop' ? "'FILL' 1" : "'FILL' 0" }}
+        <svg
+          className="w-6 h-6 stroke-current stroke-2 fill-none"
+          viewBox="0 0 24 24"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          storefront
-        </span>
-        <span className="text-[10px] font-bold tracking-widest uppercase">Shop</span>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
       </button>
 
+      {/* 2. Shield Logo Only */}
       <button
-        onClick={() => setActiveTab('wishlist')}
-        className={`flex flex-col items-center justify-center w-full h-full transition-all relative select-none notranslate ${
-          activeTab === 'wishlist'
-            ? 'text-[#D10000] font-black'
-            : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
+        type="button"
+        onClick={handleDashboardClick}
+        aria-label="Dashboard"
+        title="Dashboard"
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+          isDashboardActive
+            ? 'text-[#D10000] scale-110'
+            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
         }`}
-        translate="no"
       >
-        <div className="relative leading-none mb-1 flex items-center justify-center notranslate" translate="no">
-          <span
-            className="material-symbols-outlined notranslate text-2xl"
-            translate="no"
-            style={{ fontVariationSettings: activeTab === 'wishlist' ? "'FILL' 1" : "'FILL' 0" }}
-          >
-            favorite
-          </span>
-          {wishlistCount > 0 && (
-            <span className="absolute -top-1.5 -right-2.5 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
-              {wishlistCount > 9 ? '9+' : wishlistCount}
-            </span>
-          )}
-        </div>
-        <span className="text-[10px] font-bold tracking-widest uppercase">Wishlist</span>
+        <svg
+          className="w-6 h-6 stroke-current stroke-2 fill-none"
+          viewBox="0 0 24 24"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
       </button>
 
-      {userRole !== 'owner' && (
-        <button
-          onClick={() => {
-            setActiveTab('orders');
-          }}
-          className={`flex flex-col items-center justify-center w-full h-full transition-all select-none notranslate ${
-            activeTab === 'orders'
-              ? 'text-[#D10000] font-black'
-              : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
-          }`}
-          translate="no"
-        >
-          <span
-            className="material-symbols-outlined notranslate text-2xl leading-none mb-1"
-            translate="no"
-            style={{ fontVariationSettings: activeTab === 'orders' ? "'FILL' 1" : "'FILL' 0" }}
-          >
-            package_2
-          </span>
-          <span className="text-[10px] font-bold tracking-widest uppercase">Orders</span>
-        </button>
-      )}
-
+      {/* 3. Account Logo Only */}
       <button
-        onClick={() => setActiveTab('cart')}
-        className={`flex flex-col items-center justify-center w-full h-full transition-all relative select-none notranslate ${
-          activeTab === 'cart'
-            ? 'text-[#D10000] font-black'
-            : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
+        type="button"
+        onClick={handleAccountClick}
+        aria-label="Account"
+        title="Account"
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+          isAccountActive
+            ? 'text-[#D10000] scale-110'
+            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
         }`}
-        translate="no"
       >
-        <div className="relative leading-none mb-1 flex items-center justify-center notranslate" translate="no">
-          <span
-            className="material-symbols-outlined notranslate text-2xl"
-            translate="no"
-            style={{ fontVariationSettings: activeTab === 'cart' ? "'FILL' 1" : "'FILL' 0" }}
-          >
-            shopping_bag
-          </span>
-          {cartCount > 0 && (
-            <span className="absolute -top-1.5 -right-2.5 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
-              {cartCount > 9 ? '9+' : cartCount}
-            </span>
-          )}
-        </div>
-        <span className="text-[10px] font-bold tracking-widest uppercase">Cart</span>
-      </button>
-
-      <button
-        onClick={() => {
-          if (userRole === 'guest') {
-            onOpenAuthModal();
-          } else if (userRole === 'owner') {
-            setActiveTab('owner-dashboard');
-          } else {
-            setActiveTab('profile');
-          }
-        }}
-        className={`flex flex-col items-center justify-center w-full h-full transition-all select-none notranslate ${
-          activeTab === 'profile' || activeTab === 'owner-dashboard' || activeTab === 'customer-dashboard'
-            ? 'text-[#D10000] font-black'
-            : 'dark:text-[#868686] text-gray-500 hover:text-gray-900 dark:hover:text-white'
-        }`}
-        translate="no"
-      >
-        <span
-          className="material-symbols-outlined notranslate text-2xl leading-none mb-1"
-          translate="no"
-          style={{ fontVariationSettings: (activeTab === 'profile' || activeTab === 'owner-dashboard' || activeTab === 'customer-dashboard') ? "'FILL' 1" : "'FILL' 0" }}
+        <svg
+          className="w-6 h-6 stroke-current stroke-2 fill-none"
+          viewBox="0 0 24 24"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          {userRole === 'owner' ? 'admin_panel_settings' : userRole === 'guest' ? 'login' : 'person'}
-        </span>
-        <span className="text-[10px] font-bold tracking-widest uppercase">
-          {userRole === 'owner' ? 'Admin' : userRole === 'guest' ? 'Sign In' : 'You'}
-        </span>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
       </button>
     </nav>
   );

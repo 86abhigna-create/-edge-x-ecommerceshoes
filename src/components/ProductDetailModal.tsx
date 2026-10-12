@@ -153,16 +153,31 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       <div className="dark:bg-[#0D0D0D] bg-white w-full max-w-4xl max-h-[94vh] overflow-y-auto rounded-2xl border dark:border-[#262626] border-gray-200 shadow-2xl relative flex flex-col my-auto">
         
         {/* Sticky Close Header */}
-        <div className="sticky top-0 z-20 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#262626] border-gray-200 px-4 sm:px-6 py-3 sm:py-3.5 flex justify-between items-center">
+        <div className="sticky top-0 z-30 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#262626] border-gray-200 px-4 sm:px-6 py-3 sm:py-3.5 flex justify-between items-center shadow-sm">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest dark:text-[#F2F2F2] text-gray-900 truncate">
-            <span className="material-symbols-outlined text-base shrink-0">inventory_2</span>
-            <span className="truncate">EDGEX Silhouette Spec Card & Variant Inventory</span>
+            <span className="material-symbols-outlined text-base shrink-0">
+              {product.category === 'T-Shirts' ? 'apparel' : 'inventory_2'}
+            </span>
+            <span className="truncate">
+              {product.category === 'T-Shirts' ? 'EDGEX Heavyweight Tee Spec Card' : 'EDGEX Silhouette Spec Card'}
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#F2F2F2] text-gray-900 hover:bg-[#D10000] hover:text-white transition-colors shrink-0 ml-2"
+            aria-label="Close modal"
+            title="Close"
+            className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shrink-0 ml-2 cursor-pointer shadow-sm active:scale-90 z-40 border border-red-600"
           >
-            <span className="material-symbols-outlined text-lg">close</span>
+            <svg
+              className="w-4 h-4 stroke-current stroke-2"
+              viewBox="0 0 24 24"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -332,7 +347,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <div className="mb-5">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-bold uppercase tracking-wider dark:text-[#F2F2F2] text-gray-900">
-                    Select Size (US)
+                    {product.category === 'T-Shirts' ? 'Select Size (Apparel)' : 'Select Size (US Footwear)'}
                   </span>
                   <button
                     onClick={() => setShowSizeGuide(!showSizeGuide)}
@@ -495,14 +510,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 }`}
               >
                 <span className="material-symbols-outlined text-base">
-                  {isOutOfStock ? 'block' : 'bookmark_add'}
+                  {isOutOfStock ? 'block' : 'shopping_bag'}
                 </span>
                 <span>
                   {isOutOfStock 
                     ? 'Variant Out of Stock' 
                     : addedAnimation 
                     ? 'Added to Bag ✓' 
-                    : 'Book Pair (Add to Bag)'}
+                    : 'Add to Bag'}
                 </span>
               </button>
 

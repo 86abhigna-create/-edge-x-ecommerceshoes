@@ -12,6 +12,7 @@ import { OwnerDashboardView } from './components/OwnerDashboardView';
 import { AuthView } from './components/AuthView';
 import { useAuth } from './context/AuthContext';
 import { useAddToCart, useUpdateCartItem, useRemoveFromCart, useAddToWishlist, useRemoveFromWishlist, useCreateOrder, useCreateReview } from './hooks/useApi';
+import blackTeeImg from './assets/images/edgex_heavy_tee_black_1791818496510.jpg';
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -39,6 +40,15 @@ export default function App() {
   }
 
   const heroImages: HeroItem[] = [
+    {
+      src: blackTeeImg,
+      mobileSrc: blackTeeImg,
+      tabSrc: blackTeeImg,
+      subtitle: "Apparel Drop 01 // 300 GSM Heavyweight",
+      title: "BRUTALIST TEE CAPSULE",
+      desc: "Architectural boxy drops, dropped shoulders, and heavy combed cotton that dominates streetwear.",
+      fit: "luxury-balanced"
+    },
     {
       src: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
       mobileSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
@@ -75,7 +85,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, [heroImages.length]);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('All Shoes');
+  const [selectedCategory, setSelectedCategory] = useState<string>('T-Shirts');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('Recommended');
   
@@ -685,9 +695,13 @@ export default function App() {
       matchesCategory = p.category === 'Streetwear' || p.category === 'High-Top' || p.category.includes('Streetwear');
     } else if (selectedCategory === 'Best Sellers') {
       matchesCategory = p.badge === 'Limited' || p.price > 200;
-    } else if (selectedCategory === 'Sale') {
+    } else if (selectedCategory === 'Sale' || selectedCategory === 'Sales and Offer' || selectedCategory === 'Sales & Offers') {
       matchesCategory = p.price < 230 || p.badge === 'Sale' || Boolean(p.discountPercent);
-    } else if (selectedCategory !== 'All Shoes') {
+    } else if (selectedCategory === 'T-Shirts' || selectedCategory === 'T-shirts') {
+      matchesCategory = p.category.toLowerCase().includes('shirt') || p.category.toLowerCase().includes('apparel');
+    } else if (selectedCategory === 'Shoes') {
+      matchesCategory = !p.category.toLowerCase().includes('shirt') && !p.category.toLowerCase().includes('apparel');
+    } else if (selectedCategory !== 'All Shoes' && selectedCategory !== 'All Collection') {
       matchesCategory = p.category.toLowerCase() === selectedCategory.toLowerCase();
     }
     
@@ -772,6 +786,8 @@ export default function App() {
     return 0;
   });
 
+  const tshirtProducts = products.filter((p) => p.category === 'T-Shirts' && p.published !== false);
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -784,7 +800,7 @@ export default function App() {
   };
 
   return (
-    <div className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 min-h-screen flex flex-col font-['Inter',sans-serif] pt-16 pb-20 md:pb-0">
+    <div className="dark:bg-[#0D0D0D] bg-white dark:text-[#F2F2F2] text-gray-900 min-h-screen flex flex-col font-['Inter',sans-serif] pt-16 pb-16">
       {/* Top App Bar */}
       <Header
         cartCount={cartCount}
@@ -802,26 +818,6 @@ export default function App() {
         toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
 
-      {/* Guest Mode Notice Banner */}
-      {userRole === 'guest' && (
-        <div className="bg-white border-b border-gray-200 text-gray-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#D10000] animate-pulse" />
-            <span>
-              <strong className="text-gray-900 font-bold">Full Catalog Browsing:</strong> Explore high-res photos, colorways, and specifications freely.
-            </span>
-          </div>
-          <button
-            onClick={() => {
-              setLoginPromptMsg('Sign in or register your account to manage orders, wishlist, and bag.');
-              setIsAuthModalOpen(true);
-            }}
-            className="px-3 py-1 bg-[#D10000] hover:bg-red-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
-          >
-            Sign In / Register
-          </button>
-        </div>
-      )}
       <main className="flex-grow flex flex-col w-full max-w-[1440px] mx-auto">
         {activeTab === 'shop' && (
           <>
@@ -1019,7 +1015,7 @@ export default function App() {
             {/* Filter & Search Bar */}
             <div id="featured-drops" className="w-full px-4 sm:px-5 md:px-16 mb-8 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
               <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
-                {['All Shoes', 'New Arrivals', 'Streetwear', 'Best Sellers', 'Sale'].map((cat) => (
+                {['T-Shirts', 'All Collection', 'Shoes', 'New Arrivals', 'Best Sellers', 'Sale'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -1258,11 +1254,132 @@ export default function App() {
               </div>
             )}
 
-            {/* Featured Shoes Grid */}
+            {/* DOMINANT T-SHIRTS CAPSULE SECTION */}
+            <section className="w-full px-4 sm:px-5 md:px-16 mb-16">
+              <div className="dark:bg-[#111111] bg-neutral-900 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-neutral-800 shadow-2xl relative overflow-hidden">
+                {/* Background ambient red glow */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[#D10000]/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#D10000]/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
+
+                <div className="relative z-10">
+                  {/* Section Title & Description */}
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-neutral-800">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest">
+                          DOMINANT APPAREL DROP
+                        </span>
+                        <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
+                          300 GSM Heavy Organic Cotton
+                        </span>
+                      </div>
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-['Bebas_Neue',sans-serif] tracking-wide text-white leading-none">
+                        HEAVYWEIGHT OVERSIZED TEES
+                      </h2>
+                      <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl mt-1.5">
+                        Architectural boxy drops, pre-shrunk heavyweight jersey, and high-density brutalist prints built to dominate the streetwear aesthetic.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('T-Shirts');
+                        window.scrollTo({ top: 500, behavior: 'smooth' });
+                      }}
+                      className="self-start md:self-end px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shrink-0"
+                    >
+                      <span>Explore All Tees ({tshirtProducts.length})</span>
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                  </div>
+
+                  {/* 4-Column Showcase of Dominant T-Shirts */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {tshirtProducts.map((tee) => (
+                      <div
+                        key={`dominant-tee-${tee.id}`}
+                        onClick={() => setSelectedProduct(tee)}
+                        className="bg-black/60 hover:bg-black border border-neutral-800 hover:border-[#D10000] rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 group cursor-pointer relative shadow-lg hover:shadow-2xl hover:-translate-y-1"
+                      >
+                        {/* Top Badges */}
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-[#D10000] text-white">
+                            {tee.badge || 'New'}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-wider">
+                            Boxy Drop
+                          </span>
+                        </div>
+
+                        {/* Image Preview */}
+                        <div className="aspect-square w-full bg-neutral-950 rounded-xl mb-4 overflow-hidden relative flex items-center justify-center p-3 border border-neutral-800/80">
+                          <img
+                            src={tee.image}
+                            alt={tee.altText}
+                            className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleWishlist(tee);
+                            }}
+                            title={wishlist.some((w) => w.product?.id === tee.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-black backdrop-blur-sm flex items-center justify-center text-red-500 transition-all cursor-pointer"
+                          >
+                            <span
+                              className="material-symbols-outlined text-sm notranslate"
+                              style={{
+                                fontVariationSettings: wishlist.some((w) => w.product?.id === tee.id) ? "'FILL' 1" : "'FILL' 0"
+                              }}
+                            >
+                              favorite
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="space-y-1.5 mb-3">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#D10000]">
+                            {tee.tagline?.split('•')[0] || '300 GSM Heavy Cotton'}
+                          </p>
+                          <h3 className="font-bold text-sm text-white leading-tight group-hover:text-[#D10000] transition-colors">
+                            {tee.name}
+                          </h3>
+                          <p className="text-[11px] text-neutral-400 line-clamp-1">
+                            {tee.colorway}
+                          </p>
+                        </div>
+
+                        {/* Sizes & Price */}
+                        <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            {['S', 'M', 'L', 'XL', 'XXL'].map((sz) => (
+                              <span
+                                key={sz}
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300"
+                              >
+                                {sz}
+                              </span>
+                            ))}
+                          </div>
+                          <span className="font-extrabold text-sm text-white">
+                            ₹{tee.price.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Featured Shoes & Silhouettes Grid */}
             <section className="w-full px-5 md:px-16 mb-16">
               <div className="flex justify-between items-end mb-8">
                 <h3 className="text-[36px] md:text-[48px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal">
-                  {selectedCategory === 'All Shoes' ? 'Featured Drops' : selectedCategory}
+                  {selectedCategory === 'All Shoes' ? 'Footwear & Streetwear Catalog' : selectedCategory}
                 </h3>
                 <span className="text-xs font-bold uppercase tracking-widest dark:text-[#767680] text-gray-600">
                   {sortedProducts.length} Silhouettes
@@ -1347,7 +1464,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-2.5 border-t dark:border-[#262626] border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <div className="mt-3 pt-2.5 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-extrabold dark:text-[#F2F2F2] text-gray-900">₹{shoe.price.toLocaleString('en-IN')}</span>
@@ -1358,46 +1475,6 @@ export default function App() {
                             ) : null}
                           </div>
                           <span className="text-[10px] dark:text-[#767680] text-gray-600 font-semibold">Size {shoe.sizes?.[0] || 'US 9'}</span>
-                        </div>
-
-                        <div className="flex flex-col gap-1.5 shrink-0 w-full sm:w-auto">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (userRole === 'guest') {
-                                setLoginPromptMsg('Please sign in or create an account to book your pair and add to bag.');
-                                setIsAuthModalOpen(true);
-                                return;
-                              }
-                              handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
-                              setIsCartOpen(true);
-                            }}
-                            className="w-full bg-[#D10000] hover:bg-[#a80000] text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                            title="Book this pair and add to your bag"
-                          >
-                            <span className="material-symbols-outlined text-xs">bookmark_add</span>
-                            <span>Book Pair</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (userRole === 'guest') {
-                                setLoginPromptMsg('Please sign in or log in to complete your purchase.');
-                                setIsAuthModalOpen(true);
-                                return;
-                              }
-                              handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
-                              setIsCheckoutOpen(true);
-                            }}
-                            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer"
-                            title="Buy now and proceed to instant checkout"
-                          >
-                            <span className="material-symbols-outlined text-xs">bolt</span>
-                            <span>Buy Now</span>
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -1496,23 +1573,6 @@ export default function App() {
                         <span className="text-sm font-extrabold dark:text-[#F2F2F2] text-gray-900">
                           ₹{shoe.price.toLocaleString('en-IN')}
                         </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (userRole === 'guest') {
-                              setLoginPromptMsg('Please sign in to book your pair.');
-                              setIsAuthModalOpen(true);
-                              return;
-                            }
-                            handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
-                            setIsCartOpen(true);
-                          }}
-                          className="bg-[#D10000] hover:bg-[#a80000] text-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-xs">shopping_bag</span>
-                          <span>Add to Bag</span>
-                        </button>
                       </div>
                     </div>
                   ))}
@@ -1620,44 +1680,6 @@ export default function App() {
                             <span className="text-base font-black text-[#D10000]">
                               ₹{discountedPrice.toLocaleString('en-IN')}
                             </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (userRole === 'guest') {
-                                  setLoginPromptMsg('Please sign in to claim this deal and book your pair.');
-                                  setIsAuthModalOpen(true);
-                                  return;
-                                }
-                                handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
-                                setIsCartOpen(true);
-                              }}
-                              className="bg-[#D10000] hover:bg-[#a80000] text-white px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-xs">shopping_bag</span>
-                              <span>Claim Deal</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (userRole === 'guest') {
-                                  setLoginPromptMsg('Please sign in to checkout instantly.');
-                                  setIsAuthModalOpen(true);
-                                  return;
-                                }
-                                handleAddToCart(shoe, shoe.sizes?.[0] || 'US 9', 1, shoe.colorway);
-                                setIsCheckoutOpen(true);
-                              }}
-                              className="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 shadow-xs cursor-pointer"
-                            >
-                              <span className="material-symbols-outlined text-xs">bolt</span>
-                              <span>Buy Now</span>
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -1813,7 +1835,7 @@ export default function App() {
             </section>
 
             {/* Footer */}
-            <footer className="dark:bg-[#0D0D0D] bg-white border-t dark:border-[#262626] border-gray-200 pt-16 pb-24 md:pb-8 px-5 md:px-16 text-sm dark:text-[#868686] text-gray-500">
+            <footer className="dark:bg-[#0D0D0D] bg-white border-t dark:border-[#262626] border-gray-200 pt-16 pb-12 px-5 md:px-16 text-sm dark:text-[#868686] text-gray-500">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <div className="space-y-4">
                   <h4 className="text-2xl font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal">EDGEX</h4>
@@ -1991,12 +2013,10 @@ export default function App() {
         )}
       </main>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Bottom Navigation */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        cartCount={cartCount}
-        wishlistCount={wishlist.length}
         userRole={userRole}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
       />

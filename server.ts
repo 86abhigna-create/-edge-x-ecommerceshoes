@@ -2,8 +2,12 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { GoogleGenAI } from '@google/genai';
 
 const app = express();
+app.use(express.json());
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const PORT = process.env.PORT || 3000;
 
 // Determine dist path robustly in both dev (tsx) and production (esbuild CJS bundle)
@@ -61,6 +65,35 @@ app.get('/api/health', (_req, res) => {
     distPath,
     indexExists
   });
+});
+
+// AI Chat endpoint using @google/genai
+app.post('/api/ai-chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Invalid messages array' });
+    }
+
+    const contents = messages.map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents,
+      config: {
+        systemInstruction: 'You are EDGEX AI Assistant, a friendly and knowledgeable luxury streetwear footwear expert for EDGEX Footwear. You help customers with sizing, product details (Apex Vol. 1, Strata Void, Titan Shift, Core Minimal, Concrete Spec X, Obsidian Prime, Metro Glide, Chrono Casual, Avant Garde One), shipping info, care guides, promo codes (EDGEX10, STEEP10, EDGE20, EDGEX15), and order tracking. Keep answers concise, helpful, and stylish.',
+      }
+    });
+
+    const reply = response.text || 'I am here to help you with EDGEX sneakers, sizing, and orders!';
+    res.json({ reply });
+  } catch (error: any) {
+    console.error('Gemini chat error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate AI response' });
+  }
 });
 
 // Single Page Application (SPA) fallback: serve index.html for all other non-API routes
