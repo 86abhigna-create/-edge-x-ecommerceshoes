@@ -41,13 +41,22 @@ export default function App() {
 
   const heroImages: HeroItem[] = [
     {
-      src: blackTeeImg,
-      mobileSrc: blackTeeImg,
-      tabSrc: blackTeeImg,
-      subtitle: "Apparel Drop 01 // 300 GSM Heavyweight",
-      title: "BRUTALIST TEE CAPSULE",
-      desc: "Architectural boxy drops, dropped shoulders, and heavy combed cotton that dominates streetwear.",
-      fit: "luxury-balanced"
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
+      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
+      subtitle: "Drop 02 // 2026 Editorial Vision",
+      title: "ARCHITECTURAL STREETWEAR",
+      desc: "Brutalist design language, custom engineered textiles, and next-generation street silhouettes.",
+      fit: "cover"
+    },
+    {
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
+      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
+      subtitle: "2026 Editorial Drop // Streetwear Campaign",
+      title: "FUTURE OF STREETWEAR",
+      desc: "Architectural aesthetics, brutalist design language, and precision craftsmanship engineered for the streets.",
+      fit: "cover"
     },
     {
       src: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
@@ -55,25 +64,7 @@ export default function App() {
       tabSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
       subtitle: "Official Brand Drop",
       title: "EDGEX",
-      desc: "The pinnacle of futuristic streetwear & precision engineered footwear.",
-      fit: "cover"
-    },
-    {
-      src: "/hero_fashion_aura_tab.png",
-      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1787852503/Luxury_Black_Loafers_for_Men___Timeless_Style_by_Fashion_Aura_1.jpg",
-      tabSrc: "/hero_fashion_aura_tab.png",
-      subtitle: "Fall/Winter 2026 Collection",
-      title: "Fashion Aura",
-      desc: "Step up your style with comfort, quality, and timeless leather luxury.",
-      fit: "cover"
-    },
-    {
-      src: "/hero_classic_leather_tab.png",
-      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1788107263/Screenshot_2026-08-30_215705.png",
-      tabSrc: "/hero_classic_leather_tab.png",
-      subtitle: "Classic Heritage",
-      title: "Classic Style",
-      desc: "Premium hand-finished leather craftsmanship for unmatched elegance.",
+      desc: "The pinnacle of futuristic streetwear & precision engineered apparel.",
       fit: "cover"
     }
   ];
@@ -786,8 +777,6 @@ export default function App() {
     return 0;
   });
 
-  const tshirtProducts = products.filter((p) => p.category === 'T-Shirts' && p.published !== false);
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -851,7 +840,7 @@ export default function App() {
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/hero_fashion_aura_tab.png';
+                              (e.target as HTMLImageElement).src = 'https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png';
                             }}
                           />
                         </picture>
@@ -883,7 +872,7 @@ export default function App() {
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/hero_fashion_aura_tab.png';
+                              (e.target as HTMLImageElement).src = 'https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png';
                             }}
                           />
                         </picture>
@@ -1254,135 +1243,14 @@ export default function App() {
               </div>
             )}
 
-            {/* DOMINANT T-SHIRTS CAPSULE SECTION */}
-            <section className="w-full px-4 sm:px-5 md:px-16 mb-16">
-              <div className="dark:bg-[#111111] bg-neutral-900 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-neutral-800 shadow-2xl relative overflow-hidden">
-                {/* Background ambient red glow */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-[#D10000]/15 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#D10000]/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20"></div>
-
-                <div className="relative z-10">
-                  {/* Section Title & Description */}
-                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-neutral-800">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest">
-                          DOMINANT APPAREL DROP
-                        </span>
-                        <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">
-                          300 GSM Heavy Organic Cotton
-                        </span>
-                      </div>
-                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-['Bebas_Neue',sans-serif] tracking-wide text-white leading-none">
-                        HEAVYWEIGHT OVERSIZED TEES
-                      </h2>
-                      <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl mt-1.5">
-                        Architectural boxy drops, pre-shrunk heavyweight jersey, and high-density brutalist prints built to dominate the streetwear aesthetic.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedCategory('T-Shirts');
-                        window.scrollTo({ top: 500, behavior: 'smooth' });
-                      }}
-                      className="self-start md:self-end px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shrink-0"
-                    >
-                      <span>Explore All Tees ({tshirtProducts.length})</span>
-                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </div>
-
-                  {/* 4-Column Showcase of Dominant T-Shirts */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {tshirtProducts.map((tee) => (
-                      <div
-                        key={`dominant-tee-${tee.id}`}
-                        onClick={() => setSelectedProduct(tee)}
-                        className="bg-black/60 hover:bg-black border border-neutral-800 hover:border-[#D10000] rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 group cursor-pointer relative shadow-lg hover:shadow-2xl hover:-translate-y-1"
-                      >
-                        {/* Top Badges */}
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded bg-[#D10000] text-white">
-                            {tee.badge || 'New'}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-wider">
-                            Boxy Drop
-                          </span>
-                        </div>
-
-                        {/* Image Preview */}
-                        <div className="aspect-square w-full bg-neutral-950 rounded-xl mb-4 overflow-hidden relative flex items-center justify-center p-3 border border-neutral-800/80">
-                          <img
-                            src={tee.image}
-                            alt={tee.altText}
-                            className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleWishlist(tee);
-                            }}
-                            title={wishlist.some((w) => w.product?.id === tee.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
-                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-black backdrop-blur-sm flex items-center justify-center text-red-500 transition-all cursor-pointer"
-                          >
-                            <span
-                              className="material-symbols-outlined text-sm notranslate"
-                              style={{
-                                fontVariationSettings: wishlist.some((w) => w.product?.id === tee.id) ? "'FILL' 1" : "'FILL' 0"
-                              }}
-                            >
-                              favorite
-                            </span>
-                          </button>
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="space-y-1.5 mb-3">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#D10000]">
-                            {tee.tagline?.split('•')[0] || '300 GSM Heavy Cotton'}
-                          </p>
-                          <h3 className="font-bold text-sm text-white leading-tight group-hover:text-[#D10000] transition-colors">
-                            {tee.name}
-                          </h3>
-                          <p className="text-[11px] text-neutral-400 line-clamp-1">
-                            {tee.colorway}
-                          </p>
-                        </div>
-
-                        {/* Sizes & Price */}
-                        <div className="pt-3 border-t border-neutral-800/80 flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            {['S', 'M', 'L', 'XL', 'XXL'].map((sz) => (
-                              <span
-                                key={sz}
-                                className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300"
-                              >
-                                {sz}
-                              </span>
-                            ))}
-                          </div>
-                          <span className="font-extrabold text-sm text-white">
-                            ₹{tee.price.toLocaleString('en-IN')}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Featured Shoes & Silhouettes Grid */}
+            {/* Featured Products & Silhouettes Grid */}
             <section className="w-full px-5 md:px-16 mb-16">
               <div className="flex justify-between items-end mb-8">
                 <h3 className="text-[36px] md:text-[48px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal">
                   {selectedCategory === 'All Shoes' ? 'Footwear & Streetwear Catalog' : selectedCategory}
                 </h3>
                 <span className="text-xs font-bold uppercase tracking-widest dark:text-[#767680] text-gray-600">
-                  {sortedProducts.length} Silhouettes
+                  {selectedCategory === 'T-Shirts' ? `${sortedProducts.length} T-Shirts` : `${sortedProducts.length} Silhouettes`}
                 </span>
               </div>
 
@@ -1481,6 +1349,99 @@ export default function App() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* 2026 EDITORIAL CAMPAIGN SHOWCASE */}
+            <section className="w-full px-4 sm:px-5 md:px-16 mb-16">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Drop 01 Showcase Card */}
+                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border dark:border-[#262626] border-gray-200 shadow-2xl group bg-black">
+                  <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
+                    <img
+                      src="https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png"
+                      alt="EDGEX 2026 Streetwear Editorial Campaign"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+
+                    <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 z-10">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-3 py-1 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest shadow-md">
+                            EDITORIAL DROP 01
+                          </span>
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-['Bebas_Neue',sans-serif] text-white tracking-wide leading-none drop-shadow-md">
+                          FUTURE OF STREETWEAR
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-300 mt-2 line-clamp-2">
+                          Brutalist design language, heavy architectural drape, and precision craftsmanship engineered for the streets.
+                        </p>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory('T-Shirts');
+                              const el = document.getElementById('featured-drops');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>Explore Drop 01</span>
+                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Drop 02 Showcase Card - User's New Upload */}
+                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border dark:border-[#262626] border-gray-200 shadow-2xl group bg-black">
+                  <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
+                    <img
+                      src="https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png"
+                      alt="EDGEX 2026 Architectural Vision Campaign"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+
+                    <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 z-10">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-3 py-1 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest shadow-md">
+                            EDITORIAL DROP 02
+                          </span>
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-['Bebas_Neue',sans-serif] text-white tracking-wide leading-none drop-shadow-md">
+                          ARCHITECTURAL VISION
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-300 mt-2 line-clamp-2">
+                          Next-generation dystopian apparel, custom combed cottons, and utilitarian streetwear construction.
+                        </p>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory('T-Shirts');
+                              const el = document.getElementById('featured-drops');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>Explore Drop 02</span>
+                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
 
             {/* Best Sellers Section */}

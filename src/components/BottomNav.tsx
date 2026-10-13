@@ -53,10 +53,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         onClick={handleHomeClick}
         aria-label="Home"
         title="Home"
-        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer text-[#D10000] hover:text-[#B00000] ${
           isHomeActive
-            ? 'text-[#D10000] scale-110'
-            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
+            ? 'scale-110 drop-shadow-[0_2px_8px_rgba(209,0,0,0.35)]'
+            : 'hover:scale-105'
         }`}
       >
         <svg
@@ -76,10 +76,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         onClick={handleDashboardClick}
         aria-label="Dashboard"
         title="Dashboard"
-        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer text-[#D10000] hover:text-[#B00000] ${
           isDashboardActive
-            ? 'text-[#D10000] scale-110'
-            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
+            ? 'scale-110 drop-shadow-[0_2px_8px_rgba(209,0,0,0.35)]'
+            : 'hover:scale-105'
         }`}
       >
         <svg
@@ -98,10 +98,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         onClick={handleAccountClick}
         aria-label="Account"
         title="Account"
-        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer ${
+        className={`flex items-center justify-center p-3 rounded-full transition-all cursor-pointer text-[#D10000] hover:text-[#B00000] ${
           isAccountActive
-            ? 'text-[#D10000] scale-110'
-            : 'text-gray-400 dark:text-[#868686] hover:text-gray-800 dark:hover:text-white'
+            ? 'scale-110 drop-shadow-[0_2px_8px_rgba(209,0,0,0.35)]'
+            : 'hover:scale-105'
         }`}
       >
         <svg
