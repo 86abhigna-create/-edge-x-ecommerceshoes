@@ -94,160 +94,138 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D] bg-white border-b dark:border-[#262626] border-gray-200">
-      <div className="flex justify-between items-center w-full px-3 sm:px-5 md:px-16 h-16">
-        <div className="flex items-center gap-2 sm:gap-6">
+    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#222] border-gray-200">
+      <div className="flex items-center justify-between w-full px-4 sm:px-8 md:px-16 h-16 gap-4">
+        
+        {/* Left Section: Menu & Brand Logo */}
+        <div className="flex items-center gap-4 sm:gap-8 shrink-0">
           <button
             onClick={onOpenMenu}
             aria-label="Open Side Menu"
-            title="Open Side Menu (Orders, Wishlist, Bag, Collections)"
-            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors p-2 flex items-center gap-1.5 min-w-[40px] min-h-[40px] rounded-lg dark:hover:bg-[#1a1a1a] hover:bg-gray-100 cursor-pointer"
+            title="Open Menu"
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider dark:text-white text-black hover:text-[#D10000] transition-colors cursor-pointer p-1"
           >
-            <span className="material-symbols-outlined notranslate text-2xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
-              menu
-            </span>
-            <span className="hidden lg:inline text-[11px] font-black uppercase tracking-wider">
-              Menu
-            </span>
+            <span className="material-symbols-outlined notranslate text-2xl" translate="no">menu</span>
+            <span className="hidden sm:inline">Menu</span>
           </button>
 
-          <div className="flex items-center gap-4 sm:gap-12">
-            <h1
-              onClick={() => {
-                setActiveTab('shop');
-                onSelectCategory('All Shoes');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="text-2xl sm:text-3xl font-['Bebas_Neue',sans-serif] tracking-normal dark:text-[#F2F2F2] text-gray-900 cursor-pointer select-none notranslate"
-              translate="no"
-              style={{ fontFamily: "'Bebas Neue', 'Montserrat', sans-serif" }}
-            >
-              EDGEX
-            </h1>
-            {/* Desktop Navigation Links */}
-            <nav className="hidden sm:flex items-center gap-4">
+          <h1
+            onClick={() => {
+              setActiveTab('shop');
+              onSelectCategory('All Shoes');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="text-2xl sm:text-3xl font-['Bebas_Neue',sans-serif] tracking-wider dark:text-white text-black cursor-pointer select-none notranslate hover:text-[#D10000] transition-colors"
+            translate="no"
+          >
+            EDGEX
+          </h1>
+        </div>
 
-              <button
-                onClick={() => {
-                  if (userRole === 'customer') {
-                    setActiveTab('customer-dashboard');
-                  } else if (userRole === 'owner') {
-                    setActiveTab('owner-dashboard');
-                  } else {
-                    onOpenAuthModal();
-                  }
-                }}
-                className={`text-xs font-extrabold uppercase tracking-widest transition-colors flex items-center gap-1 ${
-                  activeTab === 'customer-dashboard' || activeTab === 'owner-dashboard'
-                    ? 'text-[#D10000]'
-                    : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
-                }`}
-              >
-                <span>{userRole === 'owner' ? 'Admin Portal' : 'You'}</span>
-                {userRole === 'customer' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
-              </button>
-            </nav>
-            
-            {/* Desktop Search Bar */}
-            <div className="hidden md:flex items-center dark:bg-[#1a1a1a] bg-gray-50 border dark:border-[#262626] border-gray-200 rounded-full px-4 py-1.5 w-64 md:w-80 lg:w-96 focus-within:border-[#D10000] transition-colors relative">
-              <span className="material-symbols-outlined notranslate dark:text-[#868686] text-gray-500 text-lg mr-2" translate="no">search</span>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery || ''}
-                onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
-                className="bg-transparent border-none text-xs dark:text-[#F2F2F2] text-gray-900 outline-none w-full dark:placeholder:text-[#868686] placeholder:dark:text-[#868686] text-gray-500"
-              />
-              <div className="flex items-center gap-1.5 ml-2 notranslate" translate="no">
-                <button
-                  onClick={handleVoiceSearch}
-                  className={`${isListening ? 'text-[#D10000]' : 'dark:text-[#868686] text-gray-500'} dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center notranslate`}
-                  aria-label="Voice Search"
-                  title="Search by voice"
-                  translate="no"
-                >
-                  <span className="material-symbols-outlined notranslate text-lg" translate="no">mic</span>
-                </button>
-                <div className="w-px h-4 dark:bg-[#262626] bg-gray-200"></div>
-                <button
-                  onClick={() => handleCameraClick(false)}
-                  className="dark:text-[#868686] text-gray-500 dark:hover:text-[#F2F2F2] hover:dark:text-[#F2F2F2] text-gray-900 transition-colors p-0.5 flex items-center justify-center notranslate"
-                  aria-label="Visual Search"
-                  title="Search by photo"
-                  translate="no"
-                >
-                  <span className="material-symbols-outlined notranslate text-lg" translate="no">photo_camera</span>
-                </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                />
-              </div>
-            </div>
+        {/* Center Section: Search Bar */}
+        <div className="hidden md:flex items-center flex-1 max-w-sm mx-4">
+          <div className="w-full flex items-center dark:bg-[#161616] bg-gray-100 border dark:border-[#262626] border-gray-200 rounded-full px-4 py-2 focus-within:border-[#D10000] transition-all">
+            <span className="material-symbols-outlined notranslate text-gray-400 text-lg mr-2" translate="no">search</span>
+            <input
+              type="text"
+              placeholder="Search catalog..."
+              value={searchQuery || ''}
+              onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
+              className="bg-transparent border-none text-xs dark:text-white text-black outline-none w-full placeholder:text-gray-400 font-medium"
+            />
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Mobile Search Toggle Button */}
+        {/* Right Section: Actions (Search, Brightness/Dark Mode, Account/You, Shopping Bag) */}
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+          {/* Mobile Search Toggle */}
           <button
             onClick={() => setIsMobileSearchOpen((prev) => !prev)}
             aria-label="Toggle Search"
-            className={`md:hidden flex items-center justify-center p-2 rounded-full min-w-[36px] min-h-[36px] transition-colors ${
-              isMobileSearchOpen ? 'text-[#D10000] bg-red-50 dark:bg-red-950/40' : 'dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000]'
-            }`}
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-full dark:text-white text-black hover:text-[#D10000] transition-colors"
           >
             <span className="material-symbols-outlined notranslate text-xl" translate="no">
               {isMobileSearchOpen ? 'close' : 'search'}
             </span>
           </button>
 
-
-
-          {/* Dark Mode Toggle */}
+          {/* Brightness / Dark Mode Toggle Button */}
           <button
             onClick={toggleDarkMode}
-            title="Toggle Dark Mode"
-            aria-label="Toggle Dark Mode"
-            className="flex items-center justify-center p-2 rounded-full min-w-[36px] min-h-[36px] dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] notranslate"
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Brightness / Dark Mode"
+            className="flex items-center justify-center w-9 h-9 rounded-full dark:text-white text-black hover:text-[#D10000] transition-all cursor-pointer notranslate"
             translate="no"
           >
-            <span className="material-symbols-outlined notranslate text-xl" translate="no">
+            <span className="material-symbols-outlined notranslate text-xl transition-transform hover:rotate-45 duration-300" translate="no">
               {isDarkMode ? 'light_mode' : 'dark_mode'}
             </span>
           </button>
 
-
-
-
-
-          {/* Shopping Bag */}
+          {/* Shopping Bag Button with Badge (Placed right beside brightness option) */}
           <button
             onClick={onOpenCart}
             aria-label="Shopping Bag"
-            className="dark:text-[#F2F2F2] text-gray-900 hover:text-[#D10000] transition-colors relative p-2 flex items-center justify-center min-w-[40px] min-h-[40px] notranslate"
+            title="Shopping Bag"
+            className="flex items-center justify-center relative w-9 h-9 rounded-full dark:text-white text-black hover:text-[#D10000] transition-all cursor-pointer notranslate"
             translate="no"
           >
-            <span className="material-symbols-outlined notranslate text-2xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
+            <span className="material-symbols-outlined notranslate text-xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
               shopping_bag
             </span>
             {cartCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-[#D10000] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
+              <span className="absolute -top-1 -right-1 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
                 {cartCount}
               </span>
             )}
           </button>
 
+          {/* Account / You Tab */}
+          <button
+            onClick={() => {
+              if (userRole === 'customer') {
+                setActiveTab('customer-dashboard');
+              } else if (userRole === 'owner') {
+                setActiveTab('owner-dashboard');
+              } else {
+                onOpenAuthModal();
+              }
+            }}
+            title="Account"
+            aria-label="Account"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+              activeTab === 'customer-dashboard' || activeTab === 'owner-dashboard'
+                ? 'bg-[#D10000] text-white shadow-xs'
+                : 'dark:text-white text-black hover:text-[#D10000]'
+            }`}
+          >
+            <span className="material-symbols-outlined notranslate text-lg" translate="no">account_circle</span>
+            <span className="hidden sm:inline">{userRole === 'owner' ? 'Admin' : 'You'}</span>
+          </button>
 
+          {/* Shopping Bag Button with Badge */}
+          <button
+            onClick={onOpenCart}
+            aria-label="Shopping Bag"
+            title="Shopping Bag"
+            className="flex items-center justify-center relative w-9 h-9 rounded-full dark:text-white text-black hover:text-[#D10000] transition-all cursor-pointer notranslate"
+            translate="no"
+          >
+            <span className="material-symbols-outlined notranslate text-xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
+              shopping_bag
+            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
+                {cartCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
       {/* Mobile Search Expandable Bar */}
       {isMobileSearchOpen && (
-        <div className="md:hidden px-4 py-2.5 dark:bg-[#141414] bg-gray-50 border-t dark:border-[#262626] border-gray-200 animate-in slide-in-from-top-2 duration-150">
+        <div className="md:hidden px-4 py-3 dark:bg-[#121212] bg-gray-50 border-t dark:border-[#262626] border-gray-200 animate-in slide-in-from-top-2 duration-150">
           <div className="flex items-center dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-full px-3.5 py-1.5 focus-within:border-[#D10000] shadow-xs">
             <span className="material-symbols-outlined notranslate dark:text-[#868686] text-gray-500 text-lg mr-2" translate="no">search</span>
             <input

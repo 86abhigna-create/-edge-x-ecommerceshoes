@@ -41,13 +41,13 @@ export default function App() {
 
   const heroImages: HeroItem[] = [
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
-      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
-      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png",
-      subtitle: "Drop 02 // 2026 Editorial Vision",
-      title: "ARCHITECTURAL STREETWEAR",
-      desc: "Brutalist design language, custom engineered textiles, and next-generation street silhouettes.",
-      fit: "cover"
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791913924/ChatGPT_Image_Oct_13_2026_11_21_32_PM.png",
+      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      subtitle: "Drop 03 // 2026 Editorial Collection",
+      title: "NEW STREETWEAR DROP",
+      desc: "Engineered for maximum comfort and durability with advanced technical fabrics.",
+      fit: "luxury-balanced"
     },
     {
       src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
@@ -56,16 +56,7 @@ export default function App() {
       subtitle: "2026 Editorial Drop // Streetwear Campaign",
       title: "FUTURE OF STREETWEAR",
       desc: "Architectural aesthetics, brutalist design language, and precision craftsmanship engineered for the streets.",
-      fit: "cover"
-    },
-    {
-      src: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
-      mobileSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
-      tabSrc: "https://res.cloudinary.com/gemhzrqu/image/upload/v1786807223/1_2.svg",
-      subtitle: "Official Brand Drop",
-      title: "EDGEX",
-      desc: "The pinnacle of futuristic streetwear & precision engineered apparel.",
-      fit: "cover"
+      fit: "luxury-balanced"
     }
   ];
 
@@ -811,7 +802,7 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[520px] bg-white border border-gray-200 flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none md:rounded-3xl shadow-sm mx-0 md:mx-4 mt-0 md:mt-4 group">
+            <section className="relative w-full h-[520px] sm:h-[560px] md:h-[620px] lg:h-[680px] bg-black border-b sm:border sm:border-gray-200 flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none sm:rounded-3xl shadow-sm mx-0 sm:mx-4 mt-0 sm:mt-4 group">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
@@ -903,26 +894,6 @@ export default function App() {
               ))}
 
               <div className="relative z-10 w-full flex flex-col gap-2.5 sm:gap-3 md:gap-4 items-start max-w-xl pointer-events-auto">
-                <div className="transition-all duration-700 ease-out transform translate-y-0 opacity-100" key={activeHeroIndex}>
-                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                    <span className="inline-block py-1 px-3 bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-xs">
-                      {heroImages[activeHeroIndex].subtitle}
-                    </span>
-                    <span className="inline-block py-1 px-2.5 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-white/10">
-                      0{activeHeroIndex + 1} / 0{heroImages.length}
-                    </span>
-                  </div>
-                  {heroImages[activeHeroIndex].title && (
-                    <h2 className="text-[32px] sm:text-[42px] md:text-[50px] lg:text-[60px] leading-[0.95] tracking-[-0.03em] font-['Bebas_Neue',sans-serif] text-white tracking-normal uppercase whitespace-pre-line drop-shadow-md">
-                      {heroImages[activeHeroIndex].title}
-                    </h2>
-                  )}
-                  {heroImages[activeHeroIndex].desc && (
-                    <p className="text-gray-200 text-xs sm:text-sm font-medium max-w-sm sm:max-w-md mt-1.5 sm:mt-2 drop-shadow-sm line-clamp-2">
-                      {heroImages[activeHeroIndex].desc}
-                    </p>
-                  )}
-                </div>
                 <div className="flex gap-4 mt-1">
                   <button 
                     onClick={() => {
@@ -1004,7 +975,7 @@ export default function App() {
             {/* Filter & Search Bar */}
             <div id="featured-drops" className="w-full px-4 sm:px-5 md:px-16 mb-8 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
               <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
-                {['T-Shirts', 'All Collection', 'Shoes', 'New Arrivals', 'Best Sellers', 'Sale'].map((cat) => (
+                {['T-Shirts', 'New Arrivals', 'Sales & Offers', 'Shoes', 'All Collection', 'Best Sellers'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -1269,15 +1240,15 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-[1px] dark:bg-[#262626] bg-gray-200 overflow-hidden border dark:border-[#262626] border-gray-200">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {sortedProducts.map((shoe) => (
                     <div
                       key={shoe.id}
                       onClick={() => setSelectedProduct(shoe)}
-                      className="dark:bg-[#0D0D0D] bg-white flex flex-col justify-between p-4 relative group cursor-pointer hover:dark:bg-[#0D0D0D] bg-white transition-colors"
+                      className="dark:bg-[#0D0D0D] bg-white p-3 flex flex-col justify-between group cursor-pointer transition-all relative overflow-hidden"
                     >
                       <div>
-                        <div className="aspect-square w-full dark:bg-white bg-gray-50 mb-3 flex items-center justify-center p-2 relative overflow-hidden rounded-lg border dark:border-gray-200 border-gray-200">
+                        <div className="aspect-[3/4] w-full dark:bg-white bg-gray-50 mb-3 flex items-center justify-center p-3 relative overflow-hidden border dark:border-gray-200 border-gray-200">
                           <img
                             src={shoe.image}
                             alt={shoe.altText}
@@ -1328,11 +1299,11 @@ export default function App() {
                           <p className="text-[10px] dark:text-[#868686] text-gray-500 uppercase tracking-widest font-bold">
                             {shoe.category}
                           </p>
-                          <h4 className="text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight">{shoe.name}</h4>
+                          <h4 className="text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight truncate">{shoe.name}</h4>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-2.5 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between">
+                      <div className="mt-3 flex items-center justify-between">
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm font-extrabold dark:text-[#F2F2F2] text-gray-900">₹{shoe.price.toLocaleString('en-IN')}</span>
@@ -1349,304 +1320,6 @@ export default function App() {
                   ))}
                 </div>
               )}
-            </section>
-
-            {/* 2026 EDITORIAL CAMPAIGN SHOWCASE */}
-            <section className="w-full px-4 sm:px-5 md:px-16 mb-16">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Drop 01 Showcase Card */}
-                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border dark:border-[#262626] border-gray-200 shadow-2xl group bg-black">
-                  <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
-                    <img
-                      src="https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png"
-                      alt="EDGEX 2026 Streetwear Editorial Campaign"
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent pointer-events-none"></div>
-
-                    <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 z-10">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-3 py-1 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest shadow-md">
-                            EDITORIAL DROP 01
-                          </span>
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-['Bebas_Neue',sans-serif] text-white tracking-wide leading-none drop-shadow-md">
-                          FUTURE OF STREETWEAR
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-300 mt-2 line-clamp-2">
-                          Brutalist design language, heavy architectural drape, and precision craftsmanship engineered for the streets.
-                        </p>
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('T-Shirts');
-                              const el = document.getElementById('featured-drops');
-                              if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer"
-                          >
-                            <span>Explore Drop 01</span>
-                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Drop 02 Showcase Card - User's New Upload */}
-                <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border dark:border-[#262626] border-gray-200 shadow-2xl group bg-black">
-                  <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
-                    <img
-                      src="https://res.cloudinary.com/jn4npnn4/image/upload/v1791826107/ChatGPT_Image_Oct_11_2026_10_52_53_PM.png"
-                      alt="EDGEX 2026 Architectural Vision Campaign"
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent pointer-events-none"></div>
-
-                    <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 z-10">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-3 py-1 rounded-full bg-[#D10000] text-white text-[10px] font-black uppercase tracking-widest shadow-md">
-                            EDITORIAL DROP 02
-                          </span>
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-['Bebas_Neue',sans-serif] text-white tracking-wide leading-none drop-shadow-md">
-                          ARCHITECTURAL VISION
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-300 mt-2 line-clamp-2">
-                          Next-generation dystopian apparel, custom combed cottons, and utilitarian streetwear construction.
-                        </p>
-                        <div className="mt-4">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('T-Shirts');
-                              const el = document.getElementById('featured-drops');
-                              if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-[#D10000] hover:text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer"
-                          >
-                            <span>Explore Drop 02</span>
-                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Best Sellers Section */}
-            <section className="w-full px-5 md:px-16 mb-16 border-t dark:border-[#262626] border-gray-200 pt-12">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="material-symbols-outlined text-amber-500 text-xl" translate="no">trending_up</span>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-500">
-                      Most In Demand
-                    </span>
-                  </div>
-                  <h3 className="text-[34px] md:text-[44px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal leading-none">
-                    Best Sellers
-                  </h3>
-                  <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">
-                    The highest-rated and fastest-moving silhouettes from our signature collections.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory('Best Sellers');
-                    const el = document.getElementById('featured-drops');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="text-xs font-bold uppercase tracking-wider text-[#D10000] hover:underline flex items-center gap-1 cursor-pointer shrink-0"
-                >
-                  <span>View All Best Sellers</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-              </div>
-
-              {/* Best Sellers Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {products
-                  .filter((p) => p.published !== false && (p.badge === 'Limited' || p.price > 200 || p.featured))
-                  .slice(0, 4)
-                  .map((shoe) => (
-                    <div
-                      key={`bestseller-${shoe.id}`}
-                      onClick={() => setSelectedProduct(shoe)}
-                      className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 flex flex-col justify-between group hover:border-[#D10000] transition-all cursor-pointer shadow-xs hover:shadow-md"
-                    >
-                      <div>
-                        <div className="aspect-square w-full dark:bg-white bg-gray-50 mb-3 flex items-center justify-center p-3 relative overflow-hidden rounded-xl border dark:border-gray-200 border-gray-200">
-                          <img
-                            src={shoe.image}
-                            alt={shoe.altText || shoe.name}
-                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <span className="absolute top-2 left-2 bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 uppercase tracking-wider rounded-md shadow-xs z-10 flex items-center gap-0.5">
-                            <span className="material-symbols-outlined text-[11px] leading-none">star</span>
-                            <span>Best Seller</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleWishlist(shoe);
-                            }}
-                            title={wishlist.some((w) => w.product?.id === shoe.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
-                            className="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full dark:bg-black/80 bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-all z-20 text-red-600 cursor-pointer"
-                          >
-                            <span
-                              className="material-symbols-outlined text-sm sm:text-base notranslate"
-                              translate="no"
-                              style={{
-                                fontVariationSettings: wishlist.some((w) => w.product?.id === shoe.id)
-                                  ? "'FILL' 1"
-                                  : "'FILL' 0",
-                              }}
-                            >
-                              {wishlist.some((w) => w.product?.id === shoe.id) ? 'favorite' : 'favorite_border'}
-                            </span>
-                          </button>
-                        </div>
-                        <p className="text-[10px] dark:text-[#868686] text-gray-500 uppercase tracking-widest font-bold">
-                          {shoe.category}
-                        </p>
-                        <h4 className="text-sm sm:text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight mt-0.5 truncate">
-                          {shoe.name}
-                        </h4>
-                        <p className="text-[11px] dark:text-[#767680] text-gray-500 line-clamp-1 mt-1">
-                          {shoe.colorway}
-                        </p>
-                      </div>
-
-                      <div className="mt-3 pt-2.5 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between gap-2">
-                        <span className="text-sm font-extrabold dark:text-[#F2F2F2] text-gray-900">
-                          ₹{shoe.price.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </section>
-
-            {/* Deals For You Section */}
-            <section className="w-full px-5 md:px-16 mb-16 border-t dark:border-[#262626] border-gray-200 pt-12">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="material-symbols-outlined text-[#D10000] text-xl" translate="no">local_offer</span>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-[#D10000]">
-                      Special Promotions & Member Pricing
-                    </span>
-                  </div>
-                  <h3 className="text-[34px] md:text-[44px] font-['Bebas_Neue',sans-serif] dark:text-[#F2F2F2] text-gray-900 tracking-normal leading-none">
-                    Deals For You
-                  </h3>
-                  <p className="text-xs dark:text-[#868686] text-gray-500 mt-1">
-                    Limited-time exclusive price drops on certified architectural silhouettes.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-[#D10000] text-[10px] font-bold uppercase rounded-full tracking-wider">
-                    Extra 15% Off with Code: EDGEX15
-                  </span>
-                </div>
-              </div>
-
-              {/* Deals For You Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {products
-                  .filter((p) => p.published !== false)
-                  .slice(0, 3)
-                  .map((shoe, idx) => {
-                    const discountRate = idx === 0 ? 25 : idx === 1 ? 20 : 15;
-                    const discountedPrice = Math.round(shoe.price * (1 - discountRate / 100));
-                    return (
-                      <div
-                        key={`deal-${shoe.id}`}
-                        onClick={() => setSelectedProduct(shoe)}
-                        className="dark:bg-[#0D0D0D] bg-white border dark:border-[#262626] border-gray-200 rounded-2xl p-4 flex flex-col justify-between group hover:border-[#D10000] transition-all cursor-pointer relative overflow-hidden shadow-xs hover:shadow-lg"
-                      >
-                        {/* Discount Banner Tag */}
-                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-                          <span className="bg-[#D10000] text-white text-[10px] font-black px-2.5 py-1 uppercase tracking-wider rounded-md shadow-sm">
-                            {discountRate}% OFF DEAL
-                          </span>
-                          <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 uppercase tracking-wide rounded-md shadow-xs">
-                            Limited Drop
-                          </span>
-                        </div>
-
-                        {/* Product Image from Featured Drop */}
-                        <div className="aspect-[4/3] w-full dark:bg-white bg-gray-50 mb-4 flex items-center justify-center p-4 relative overflow-hidden rounded-xl border dark:border-gray-200 border-gray-200">
-                          <img
-                            src={shoe.image}
-                            alt={shoe.altText || shoe.name}
-                            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-108 transition-transform duration-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleWishlist(shoe);
-                            }}
-                            title={wishlist.some((w) => w.product?.id === shoe.id) ? 'Remove from Wishlist' : 'Save to Wishlist'}
-                            className="absolute top-2 right-2 w-8 h-8 rounded-full dark:bg-black/80 bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 active:scale-90 transition-all z-20 text-red-600 cursor-pointer"
-                          >
-                            <span
-                              className="material-symbols-outlined text-base notranslate"
-                              translate="no"
-                              style={{
-                                fontVariationSettings: wishlist.some((w) => w.product?.id === shoe.id)
-                                  ? "'FILL' 1"
-                                  : "'FILL' 0",
-                              }}
-                            >
-                              {wishlist.some((w) => w.product?.id === shoe.id) ? 'favorite' : 'favorite_border'}
-                            </span>
-                          </button>
-                        </div>
-
-                        {/* Product Details */}
-                        <div>
-                          <div className="flex items-center justify-between text-[10px] uppercase font-bold dark:text-[#868686] text-gray-500">
-                            <span>{shoe.category}</span>
-                            <span className="text-emerald-500 font-extrabold">In Stock</span>
-                          </div>
-                          <h4 className="text-base font-bold dark:text-[#F2F2F2] text-gray-900 leading-tight mt-1">
-                            {shoe.name}
-                          </h4>
-                          <p className="text-xs dark:text-[#868686] text-gray-500 line-clamp-1 mt-1">
-                            {shoe.colorway} • Engineered Leather
-                          </p>
-                        </div>
-
-                        {/* Deal Price & Action */}
-                        <div className="mt-4 pt-3 border-t dark:border-[#262626] border-gray-200 flex items-center justify-between">
-                          <div className="flex flex-col">
-                            <span className="text-xs line-through text-gray-500">
-                              ₹{shoe.price.toLocaleString('en-IN')}
-                            </span>
-                            <span className="text-base font-black text-[#D10000]">
-                              ₹{discountedPrice.toLocaleString('en-IN')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
             </section>
 
             {/* Features / Benefits Section */}

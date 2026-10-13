@@ -501,7 +501,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <button
                 disabled={isOutOfStock}
                 onClick={handleAddToCartClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
+                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-full transition-all duration-300 flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
                   isOutOfStock
                     ? 'dark:bg-[#1a1a1a] bg-gray-100 dark:text-[#868686] text-gray-500 cursor-not-allowed border dark:border-[#262626] border-gray-200'
                     : addedAnimation
@@ -524,10 +524,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <button
                 disabled={isOutOfStock}
                 onClick={handleBuyNowClick}
-                className={`w-full py-3.5 px-4 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
+                className={`w-full py-3.5 px-4 text-xs font-black uppercase tracking-widest rounded-full transition-colors flex items-center justify-center gap-2 shadow-sm min-h-[48px] cursor-pointer ${
                   isOutOfStock
                     ? 'bg-[#5c0000] text-gray-400 cursor-not-allowed'
-                    : 'bg-emerald-700 text-white hover:bg-emerald-800 active:scale-[0.99]'
+                    : 'bg-amber-500 text-black hover:bg-amber-400 active:scale-[0.99]'
                 }`}
               >
                 <span className="material-symbols-outlined text-base">bolt</span>
