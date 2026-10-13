@@ -41,21 +41,21 @@ export default function App() {
 
   const heroImages: HeroItem[] = [
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
       mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791913924/ChatGPT_Image_Oct_13_2026_11_21_32_PM.png",
-      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
       subtitle: "Drop 03 // 2026 Editorial Collection",
       title: "NEW STREETWEAR DROP",
       desc: "Engineered for maximum comfort and durability with advanced technical fabrics.",
       fit: "luxury-balanced"
     },
     {
-      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
-      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
-      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791826068/ChatGPT_Image_Oct_11_2026_10_48_49_PM.png",
-      subtitle: "2026 Editorial Drop // Streetwear Campaign",
-      title: "FUTURE OF STREETWEAR",
-      desc: "Architectural aesthetics, brutalist design language, and precision craftsmanship engineered for the streets.",
+      src: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      mobileSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914800/ChatGPT_Image_Oct_13_2026_11_36_08_PM.png",
+      tabSrc: "https://res.cloudinary.com/jn4npnn4/image/upload/v1791914502/ChatGPT_Image_Oct_13_2026_11_31_16_PM.png",
+      subtitle: "Drop 03 // 2026 Editorial Collection",
+      title: "NEW STREETWEAR DROP",
+      desc: "Engineered for maximum comfort and durability with advanced technical fabrics.",
       fit: "luxury-balanced"
     }
   ];

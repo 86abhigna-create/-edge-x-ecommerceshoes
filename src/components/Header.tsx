@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#222] border-gray-200">
+    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#222] border-gray-200 hidden md:block">
       <div className="flex items-center justify-between w-full px-4 sm:px-8 md:px-16 h-16 gap-4">
         
         {/* Left Section: Menu & Brand Logo */}
