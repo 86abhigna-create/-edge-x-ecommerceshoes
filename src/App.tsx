@@ -811,7 +811,7 @@ export default function App() {
                 >
                   {hero.fit === 'luxury-balanced' ? (
                     <div className="relative w-full h-full bg-transparent flex items-center justify-center overflow-hidden">
-                      {/* Ambient background extension to fill widescreen edges seamlessly without empty borders */}
+                      {/* Ambient background extension */}
                       <picture className="absolute inset-0 w-full h-full pointer-events-none select-none">
                         {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
                         <img
@@ -821,12 +821,12 @@ export default function App() {
                           src={hero.mobileSrc || hero.src}
                         />
                       </picture>
-                      {/* Centered, unzoomed product image with comfortable scale */}
+                      {/* Product image filling 100% width and height */}
                       <div className="relative z-1 w-full h-full flex items-center justify-center p-0">
-                        <picture className="max-h-full max-w-full w-full h-full flex items-center justify-center">
+                        <picture className="w-full h-full flex items-center justify-center">
                           {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
                           <img
-                            className="max-h-full max-w-full w-full h-full object-cover object-center drop-shadow-2xl select-none"
+                            className="w-full h-full object-cover object-center drop-shadow-2xl select-none"
                             alt={hero.subtitle || 'Hero Banner'}
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
@@ -836,10 +836,17 @@ export default function App() {
                           />
                         </picture>
                       </div>
-                      {/* Soft ambient edge blend */}
-                      <div className="absolute inset-y-0 left-0 w-12 sm:w-20 md:w-28 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none z-2"></div>
-                      <div className="absolute inset-y-0 right-0 w-12 sm:w-20 md:w-28 bg-gradient-to-l from-transparent via-transparent to-transparent pointer-events-none z-2"></div>
-                      <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/75 via-transparent to-black/10"></div>
+                      <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-black/10"></div>
+                      <button
+                        onClick={() => {
+                          setActiveTab('shop');
+                          setSelectedCategory('All Shoes');
+                          window.scrollTo({ top: 350, behavior: 'smooth' });
+                        }}
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap hover:bg-[#D10000] hover:text-white transition-all shadow-lg"
+                      >
+                        Shop Collection
+                      </button>
                     </div>
                   ) : hero.fit === 'contain' ? (
                     <div className="relative w-full h-full bg-transparent flex items-center justify-center overflow-hidden">
@@ -853,12 +860,12 @@ export default function App() {
                           src={hero.mobileSrc || hero.src}
                         />
                       </picture>
-                      {/* Centered, unzoomed sneaker product visual */}
-                      <div className="relative z-1 w-full h-full flex items-center justify-center sm:justify-end p-2 sm:p-4 md:p-6 lg:p-8">
-                        <picture className="max-h-[90%] sm:max-h-[95%] max-w-[90%] sm:max-w-[85%] w-auto h-auto flex items-center justify-center">
+                      {/* Product visual filling 100% width and height */}
+                      <div className="relative z-1 w-full h-full flex items-center justify-center p-0">
+                        <picture className="w-full h-full flex items-center justify-center">
                           {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
                           <img
-                            className="max-h-full max-w-full w-full h-full object-cover object-center drop-shadow-2xl select-none"
+                            className="w-full h-full object-cover object-center drop-shadow-2xl select-none"
                             alt={hero.title}
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
@@ -868,9 +875,17 @@ export default function App() {
                           />
                         </picture>
                       </div>
-                      {/* Readable text background */}
-                      <div className="absolute inset-y-0 left-0 w-full sm:w-2/3 md:w-1/2 bg-gradient-to-r from-black/85 via-black/40 to-transparent pointer-events-none z-2 hidden sm:block"></div>
-                      <div className="absolute inset-0 z-2 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none sm:hidden"></div>
+                      <div className="absolute inset-0 z-2 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+                      <button
+                        onClick={() => {
+                          setActiveTab('shop');
+                          setSelectedCategory('All Shoes');
+                          window.scrollTo({ top: 350, behavior: 'smooth' });
+                        }}
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 bg-white text-black px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider whitespace-nowrap hover:bg-[#D10000] hover:text-white transition-all shadow-lg"
+                      >
+                        Shop Collection
+                      </button>
                     </div>
                   ) : (
                     <>
@@ -892,20 +907,6 @@ export default function App() {
                   )}
                 </div>
               ))}
-
-              <div className="relative z-10 w-full flex flex-col gap-2.5 sm:gap-3 md:gap-4 items-start max-w-xl pointer-events-auto">
-                <div className="flex gap-4 mt-1">
-                  <button 
-                    onClick={() => {
-                      document.getElementById('featured-drops')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="bg-[#D10000] text-white px-6 sm:px-7 py-2.5 sm:py-3 text-xs font-bold uppercase tracking-widest hover:bg-[#a80000] active:scale-95 transition-all shadow-lg rounded-full flex items-center gap-2 cursor-pointer notranslate-icons"
-                  >
-                    <span>Shop Collection</span>
-                    <span className="material-symbols-outlined notranslate text-sm" translate="no">arrow_downward</span>
-                  </button>
-                </div>
-              </div>
               
               {/* Sleek Carousel Navigation & Indicators */}
               <div className="absolute bottom-6 right-6 z-20 flex gap-3 items-center bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 shadow-xl notranslate" translate="no">
