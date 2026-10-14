@@ -44,7 +44,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="Bottom Navigation"
-      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md border-t border-gray-200 dark:border-[#262626] shadow-[0_-2px_12px_rgba(0,0,0,0.06)] h-14 sm:h-16 flex items-center justify-around px-4 sm:px-6 pb-[env(safe-area-inset-bottom,0px)] notranslate select-none"
+      className="!fixed !block bottom-0 left-0 right-0 w-full z-[9999] bg-white dark:bg-[#0D0D0D] backdrop-blur-md border-t border-gray-300 dark:border-[#333] shadow-[0_-4px_20px_rgba(0,0,0,0.15)] h-16 sm:h-20 flex items-center justify-around px-4 sm:px-6 notranslate select-none"
       translate="no"
     >
       {/* 1. Home Logo Only */}

@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#222] border-gray-200 hidden md:block">
+    <header className="w-full fixed top-0 left-0 right-0 z-40 dark:bg-[#0D0D0D]/95 bg-white/95 backdrop-blur-md border-b dark:border-[#222] border-gray-200 md:block">
       <div className="flex items-center justify-between w-full px-4 sm:px-8 md:px-16 h-16 gap-4">
         
         {/* Left Section: Menu & Brand Logo */}
@@ -162,47 +162,6 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
 
-          {/* Shopping Bag Button with Badge (Placed right beside brightness option) */}
-          <button
-            onClick={onOpenCart}
-            aria-label="Shopping Bag"
-            title="Shopping Bag"
-            className="flex items-center justify-center relative w-9 h-9 rounded-full dark:text-white text-black hover:text-[#D10000] transition-all cursor-pointer notranslate"
-            translate="no"
-          >
-            <span className="material-symbols-outlined notranslate text-xl" translate="no" style={{ fontVariationSettings: "'FILL' 0" }}>
-              shopping_bag
-            </span>
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#D10000] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs notranslate" translate="no">
-                {cartCount}
-              </span>
-            )}
-          </button>
-
-          {/* Account / You Tab */}
-          <button
-            onClick={() => {
-              if (userRole === 'customer') {
-                setActiveTab('customer-dashboard');
-              } else if (userRole === 'owner') {
-                setActiveTab('owner-dashboard');
-              } else {
-                onOpenAuthModal();
-              }
-            }}
-            title="Account"
-            aria-label="Account"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === 'customer-dashboard' || activeTab === 'owner-dashboard'
-                ? 'bg-[#D10000] text-white shadow-xs'
-                : 'dark:text-white text-black hover:text-[#D10000]'
-            }`}
-          >
-            <span className="material-symbols-outlined notranslate text-lg" translate="no">account_circle</span>
-            <span className="hidden sm:inline">{userRole === 'owner' ? 'Admin' : 'You'}</span>
-          </button>
-
           {/* Shopping Bag Button with Badge */}
           <button
             onClick={onOpenCart}
@@ -220,6 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             )}
           </button>
+
         </div>
       </div>
 

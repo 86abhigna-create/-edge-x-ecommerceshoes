@@ -802,7 +802,7 @@ export default function App() {
         {activeTab === 'shop' && (
           <>
             {/* Hero Section */}
-            <section className="relative w-full h-[520px] sm:h-[560px] md:h-[620px] lg:h-[680px] bg-black border-b sm:border sm:border-gray-200 flex flex-col justify-end p-5 sm:p-7 md:p-9 lg:p-10 mb-8 md:mb-16 overflow-hidden rounded-none sm:rounded-3xl shadow-sm mx-0 sm:mx-4 mt-0 sm:mt-4 group">
+            <section className="relative w-full h-[calc(100dvh-64px)] sm:h-[560px] md:h-[620px] lg:h-[680px] bg-transparent border-b flex flex-col justify-center p-0 mb-8 md:mb-16 overflow-hidden rounded-none shadow-sm mt-0 group">
               {heroImages.map((hero, idx) => (
                 <div 
                   key={idx}
@@ -810,7 +810,7 @@ export default function App() {
                   style={{ opacity: idx === activeHeroIndex ? 1 : 0, visibility: idx === activeHeroIndex ? 'visible' : 'hidden' }}
                 >
                   {hero.fit === 'luxury-balanced' ? (
-                    <div className="relative w-full h-full bg-[#181310] flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full h-full bg-transparent flex items-center justify-center overflow-hidden">
                       {/* Ambient background extension to fill widescreen edges seamlessly without empty borders */}
                       <picture className="absolute inset-0 w-full h-full pointer-events-none select-none">
                         {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
@@ -822,11 +822,11 @@ export default function App() {
                         />
                       </picture>
                       {/* Centered, unzoomed product image with comfortable scale */}
-                      <div className="relative z-1 w-full h-full flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8">
-                        <picture className="max-h-[92%] sm:max-h-[96%] max-w-[92%] sm:max-w-[95%] w-auto h-auto flex items-center justify-center">
+                      <div className="relative z-1 w-full h-full flex items-center justify-center p-0">
+                        <picture className="max-h-full max-w-full w-full h-full flex items-center justify-center">
                           {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
                           <img
-                            className="max-h-full max-w-full w-auto h-auto object-contain object-center drop-shadow-2xl select-none"
+                            className="max-h-full max-w-full w-full h-full object-cover object-center drop-shadow-2xl select-none"
                             alt={hero.subtitle || 'Hero Banner'}
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
@@ -837,12 +837,12 @@ export default function App() {
                         </picture>
                       </div>
                       {/* Soft ambient edge blend */}
-                      <div className="absolute inset-y-0 left-0 w-12 sm:w-20 md:w-28 bg-gradient-to-r from-[#181310] via-[#181310]/60 to-transparent pointer-events-none z-2"></div>
-                      <div className="absolute inset-y-0 right-0 w-12 sm:w-20 md:w-28 bg-gradient-to-l from-[#181310] via-[#181310]/60 to-transparent pointer-events-none z-2"></div>
+                      <div className="absolute inset-y-0 left-0 w-12 sm:w-20 md:w-28 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none z-2"></div>
+                      <div className="absolute inset-y-0 right-0 w-12 sm:w-20 md:w-28 bg-gradient-to-l from-transparent via-transparent to-transparent pointer-events-none z-2"></div>
                       <div className="absolute inset-0 z-2 pointer-events-none bg-gradient-to-t from-black/75 via-transparent to-black/10"></div>
                     </div>
                   ) : hero.fit === 'contain' ? (
-                    <div className="relative w-full h-full bg-[#121417] flex items-center justify-center overflow-hidden">
+                    <div className="relative w-full h-full bg-transparent flex items-center justify-center overflow-hidden">
                       {/* Ambient background extension */}
                       <picture className="absolute inset-0 w-full h-full pointer-events-none select-none">
                         {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
@@ -858,7 +858,7 @@ export default function App() {
                         <picture className="max-h-[90%] sm:max-h-[95%] max-w-[90%] sm:max-w-[85%] w-auto h-auto flex items-center justify-center">
                           {hero.tabSrc && <source media="(min-width: 768px)" srcSet={hero.tabSrc} />}
                           <img
-                            className="max-h-full max-w-full w-auto h-auto object-contain object-center sm:object-right md:object-center drop-shadow-2xl select-none"
+                            className="max-h-full max-w-full w-full h-full object-cover object-center drop-shadow-2xl select-none"
                             alt={hero.title}
                             src={hero.mobileSrc || hero.src}
                             loading={idx === 0 ? 'eager' : 'lazy'}
